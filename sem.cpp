@@ -161,23 +161,33 @@ void Event::wakeAll()
 STATUS vwppTestSemaphores()
 {
     try {
+	// Shouldn't ever throw an exception.
+
 	Mutex a;
 
+	// Create a scope for the Lock object's lifetime.
+
 	{
+	    // Lock the mutex. This shouldn't ever throw an exception
+	    // because the mutex isn't accessible to any other task.
+
 	    Lock lock(a);
 
-	    try {
+	    // Create another scope of a Lock object.
+
+	    {
+		// This shouldn't fail because Mutexes can be locked
+		// several times by the same task.
+
 		Lock lock(a, 60);
-	    }
-	    catch (std::runtime_error& e) {
-		std::cout << e.what() << std::endl;
+
+		return OK;
 	    }
 	}
-
-	return OK;
     }
     catch (std::exception& e) {
-	std::cerr << "caught unhandled exception : " << e.what() << std::endl;
+	std::cerr << "vwppTestSemaphores() : caught unhandled exception : " <<
+	    e.what() << std::endl;
 	return ERROR;
     }
 }
