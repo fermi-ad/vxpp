@@ -38,14 +38,10 @@ namespace vwpp {
     // class is to make sure the semaphore handle gets freed up
     // properly when the object is destroyed.
 
-    class SemBase : public Lockable {
+    class SemBase : public Lockable, public Uncopyable {
 	semaphore* const id;
 
-	// No copying (even derived classes) ...
-
 	SemBase();
-	SemBase(SemBase const&);
-	SemBase& operator=(SemBase const&);
 
 	void lock(int);
 	void unlock();
