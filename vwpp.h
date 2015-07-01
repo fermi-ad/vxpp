@@ -19,14 +19,14 @@ namespace vwpp {
 	virtual ~Uncopyable() {}
     };
 
-    class Lockable {
+    class Lockable : public Uncopyable {
 	friend class Lock;
 
 	virtual void lock(int) = 0;
 	virtual void unlock() = 0;
 
      public:
-	virtual ~Lockable();
+	~Lockable();
     };
 
     // **** This section defines several classes that use the
@@ -38,7 +38,7 @@ namespace vwpp {
     // class is to make sure the semaphore handle gets freed up
     // properly when the object is destroyed.
 
-    class SemBase : public Lockable, public Uncopyable {
+    class SemBase : public Lockable {
 	semaphore* const id;
 
 	SemBase();
@@ -148,7 +148,7 @@ namespace vwpp {
 
     class Task : public Uncopyable {
      protected:
-	class Interrupts : public Lockable, Uncopyable {
+	class Interrupts : public Lockable {
 	    int oldValue;
 
 	    void lock(int);
@@ -159,7 +159,7 @@ namespace vwpp {
 	    ~Interrupts();
 	};
 
-	class Scheduler : public Lockable, Uncopyable {
+	class Scheduler : public Lockable {
 	    void lock(int);
 	    void unlock();
 
@@ -168,7 +168,7 @@ namespace vwpp {
 	    ~Scheduler();
 	};
 
-	class Safety : public Lockable, Uncopyable {
+	class Safety : public Lockable {
 	    void lock(int);
 	    void unlock();
 
@@ -177,7 +177,7 @@ namespace vwpp {
 	    ~Safety();
 	};
 
-	class AbsPriority : public Lockable, Uncopyable {
+	class AbsPriority : public Lockable {
 	    int const newValue;
 	    int oldValue;
 
@@ -189,7 +189,7 @@ namespace vwpp {
 	    ~AbsPriority();
 	};
 
-	class RelPriority : public Lockable, Uncopyable {
+	class RelPriority : public Lockable {
 	    int const newValue;
 	    int oldValue;
 
