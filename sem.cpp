@@ -118,22 +118,6 @@ bool Event::wait(int tmo)
     return true;
 }
 
-// Wakes only one task that's currently blocked on the event. This
-// method is safe to call from an interrupt routine.
-
-void Event::wakeOne()
-{
-    semGive(id);
-}
-
-// Wakes all tasks that are blocked on the event. This method is safe
-// to call from an interrupt routine.
-
-void Event::wakeAll()
-{
-    semFlush(id);
-}
-
 #ifndef NDEBUG
 
 #include <iostream>

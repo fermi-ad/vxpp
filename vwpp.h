@@ -8,6 +8,11 @@
 struct semaphore;
 struct msg_q;
 
+extern "C" {
+    int semGive(struct semaphore*);
+    int semFlush(struct semaphore*);
+}
+
 namespace vwpp {
 
     class Uncopyable {
@@ -93,8 +98,8 @@ namespace vwpp {
 	~Event();
 
 	bool wait(int = -1);
-	void wakeOne();
-	void wakeAll();
+	void wakeOne() { semGive(id); }
+	void wakeAll() { semFlush(id); }
     };
 
     // **** This section defines several classes that support the
