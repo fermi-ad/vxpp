@@ -2,7 +2,9 @@ Announcing v1.4 of VWPP
 
     Changes from version 1.3:
 
-    - 
+    - Definitions of vwpp::Lock(), vwpp::~Lock(), vwpp::Event::wakeOne(),
+      and vwpp::Event::wakeAll() were moved into the header so they can be
+      inlined by the compiler.
 
 Description
 
