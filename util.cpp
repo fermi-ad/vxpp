@@ -9,9 +9,6 @@ int vwpp::ms_to_tick(int const v)
 {
     if (v == WAIT_FOREVER)
 	return WAIT_FOREVER;
-    else {
-	int const rate = sysClkRateGet();
-
-	return std::max((rate * v + 500) / 1000, 1);
-    }
+    else
+	return std::max((sysClkRateGet() * v + 500) / 1000, 2);
 }
