@@ -77,24 +77,6 @@ Lockable::~Lockable()
 {
 }
 
-// Lock constructor -- The whole purpose of this class is to tie the
-// semTake() and semGive() period to the lifetime of the object. If we
-// can't "take" the semaphore in the constructor, we throw an
-// exception.
-
-Lock::Lock(Lockable& ll, int tmo) :
-    obj(ll)
-{
-    obj.lock(tmo);
-}
-
-// Lock destructor -- Give up the sempahore.
-
-Lock::~Lock()
-{
-    obj.unlock();
-}
-
 // Event constructor -- Builds a binary semaphore used for
 // synchronization.
 

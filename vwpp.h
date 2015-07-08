@@ -78,8 +78,8 @@ namespace vwpp {
 	Lock();
 
      public:
-	explicit Lock(Lockable&, int = -1);
-	~Lock();
+	explicit Lock(Lockable& ll, int tmo = -1) : obj(ll) { obj.lock(tmo); }
+	~Lock() { obj.unlock(); }
     };
 
     // This class is used by tasks to signal each other when something
