@@ -5,6 +5,10 @@
 
 #include <string>
 
+// These forward-declared structures and functions are found in
+// <semLib.h>. We don't want to require users of this library to
+// include VxWorks' headers, if they don't need to.
+
 struct semaphore;
 struct msg_q;
 
@@ -13,7 +17,12 @@ extern "C" {
     int semFlush(struct semaphore*);
 }
 
+// All identifiers of this module are located in the vwpp name space.
+
 namespace vwpp {
+
+    // Any class derived from Uncopyable will cause a compile-time
+    // error if the code tries to copy an instance the class.
 
     class Uncopyable {
 	Uncopyable(Uncopyable const&);
@@ -23,6 +32,9 @@ namespace vwpp {
 	Uncopyable() {}
 	virtual ~Uncopyable() {}
     };
+
+    // Classes derived from Lockable can be locked with an instance of
+    // Lock().
 
     class Lockable : public Uncopyable {
 	friend class Lock;
