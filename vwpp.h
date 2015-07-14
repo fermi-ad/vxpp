@@ -5,12 +5,13 @@
 
 #include <string>
 
+#ifndef __INCsemLibh
+
 // These forward-declared structures and functions are found in
 // <semLib.h>. We don't want to require users of this library to
 // include VxWorks' headers, if they don't need to.
 
 struct semaphore;
-struct msg_q;
 
 extern "C" {
     int semDelete(struct semaphore*) throw();
@@ -18,6 +19,12 @@ extern "C" {
     int semGive(struct semaphore*) throw();
     int semTake(struct semaphore*, int) throw();
 }
+
+#endif
+
+#ifndef __INCmsgQLibh
+struct msg_q;
+#endif
 
 // All identifiers of this module are located in the vwpp name space.
 
