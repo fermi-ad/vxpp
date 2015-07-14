@@ -24,7 +24,7 @@ SemBase::SemBase(semaphore* ii) : id(ii)
 // When any derived object gets destroyed, we need to destroy the
 // semaphore object we own.
 
-SemBase::~SemBase()
+SemBase::~SemBase() throw()
 {
     semDelete(id);
 }
@@ -73,7 +73,7 @@ void SemBase::unlock()
     semGive(id);
 }
 
-Lockable::~Lockable()
+Lockable::~Lockable() throw()
 {
 }
 
@@ -87,7 +87,7 @@ Event::Event() :
 	throw std::bad_alloc();
 }
 
-Event::~Event()
+Event::~Event() throw()
 {
     semDelete(id);
 }

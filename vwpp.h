@@ -13,8 +13,10 @@ struct semaphore;
 struct msg_q;
 
 extern "C" {
-    int semGive(struct semaphore*);
-    int semFlush(struct semaphore*);
+    int semDelete(struct semaphore*) throw();
+    int semFlush(struct semaphore*) throw();
+    int semGive(struct semaphore*) throw();
+    int semTake(struct semaphore*, int) throw();
 }
 
 // All identifiers of this module are located in the vwpp name space.
@@ -29,8 +31,8 @@ namespace vwpp {
 	Uncopyable& operator=(Uncopyable const&);
 
      public:
-	Uncopyable() {}
-	virtual ~Uncopyable() {}
+	Uncopyable() throw() {}
+	virtual ~Uncopyable() throw() {}
     };
 
     // Classes derived from Lockable can be locked with an instance of
@@ -43,7 +45,7 @@ namespace vwpp {
 	virtual void unlock() = 0;
 
      public:
-	~Lockable();
+	~Lockable() throw();
     };
 
     // **** This section defines several classes that use the
@@ -65,7 +67,7 @@ namespace vwpp {
 
      public:
 	explicit SemBase(semaphore*);
-	virtual ~SemBase();
+	virtual ~SemBase() throw();
     };
 
     // This class uses the "Counting" Semaphore as its underlying
@@ -96,7 +98,7 @@ namespace vwpp {
 
      public:
 	explicit Lock(Lockable& ll, int tmo = -1) : obj(ll) { obj.lock(tmo); }
-	~Lock() { obj.unlock(); }
+	~Lock() throw() { obj.unlock(); }
     };
 
     // This class is used by tasks to signal each other when something
@@ -107,7 +109,7 @@ namespace vwpp {
 
      public:
 	Event();
-	~Event();
+	~Event() throw();
 
 	bool wait(int = -1);
 	void wakeOne() { semGive(id); }
@@ -129,7 +131,7 @@ namespace vwpp {
 
      public:
 	QueueBase(size_t, size_t);
-	virtual ~QueueBase();
+	virtual ~QueueBase() throw();
 
 	size_t total() const;
     };
@@ -173,7 +175,7 @@ namespace vwpp {
 
 	 public:
 	    Interrupts();
-	    ~Interrupts();
+	    ~Interrupts() throw();
 	};
 
 	class Scheduler : public Lockable {
@@ -182,7 +184,7 @@ namespace vwpp {
 
 	 public:
 	    Scheduler();
-	    ~Scheduler();
+	    ~Scheduler() throw();
 	};
 
 	class Safety : public Lockable {
@@ -191,7 +193,7 @@ namespace vwpp {
 
 	 public:
 	    Safety();
-	    ~Safety();
+	    ~Safety() throw();
 	};
 
 	class AbsPriority : public Lockable {
@@ -203,7 +205,7 @@ namespace vwpp {
 
 	 public:
 	    explicit AbsPriority(int nv) : newValue(nv) {}
-	    ~AbsPriority();
+	    ~AbsPriority() throw();
 	};
 
 	class RelPriority : public Lockable {
@@ -215,7 +217,7 @@ namespace vwpp {
 
 	 public:
 	    explicit RelPriority(int nv) : newValue(nv) {}
-	    ~RelPriority();
+	    ~RelPriority() throw();
 	};
 
      private:
@@ -235,7 +237,7 @@ namespace vwpp {
 
      public:
 	Task();
-	virtual ~Task();
+	virtual ~Task() throw();
 
 	bool isReady() const;
 	bool isSuspended() const;

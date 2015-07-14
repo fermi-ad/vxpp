@@ -18,7 +18,7 @@ Task::Interrupts::Interrupts()
 {
 }
 
-Task::Interrupts::~Interrupts()
+Task::Interrupts::~Interrupts() throw()
 {
 }
 
@@ -26,7 +26,7 @@ Task::Scheduler::Scheduler()
 {
 }
 
-Task::Scheduler::~Scheduler()
+Task::Scheduler::~Scheduler() throw()
 {
 }
 
@@ -59,7 +59,7 @@ Task::Safety::Safety()
 {
 }
 
-Task::Safety::~Safety()
+Task::Safety::~Safety() throw()
 {
 }
 
@@ -73,7 +73,7 @@ void Task::Safety::unlock()
     taskUnsafe();
 }
 
-Task::AbsPriority::~AbsPriority()
+Task::AbsPriority::~AbsPriority() throw()
 {
 }
 
@@ -93,7 +93,7 @@ void Task::AbsPriority::unlock()
     taskPrioritySet(taskIdSelf(), oldValue);
 }
 
-Task::RelPriority::~RelPriority()
+Task::RelPriority::~RelPriority() throw()
 {
 }
 
@@ -135,7 +135,7 @@ Task::Task() : id(ERROR)
 {
 }
 
-Task::~Task()
+Task::~Task() throw()
 {
     Lock lock(Scheduler());
 
