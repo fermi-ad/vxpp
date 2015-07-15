@@ -5,115 +5,9 @@
 #include <intLib.h>
 #include <sysLib.h>
 #include <stdexcept>
-#include <algorithm>
 #include "vwpp.h"
 
 using namespace vwpp;
-
-Task::Interrupts Task::interrupt;
-Task::Scheduler Task::scheduler;
-Task::Safety Task::safety;
-
-Task::Interrupts::Interrupts()
-{
-}
-
-Task::Interrupts::~Interrupts() throw()
-{
-}
-
-Task::Scheduler::Scheduler()
-{
-}
-
-Task::Scheduler::~Scheduler() throw()
-{
-}
-
-void Task::Interrupts::lock(int)
-{
-    oldValue = intLock();
-}
-
-void Task::Interrupts::unlock()
-{
-    intUnlock(oldValue);
-}
-
-void Task::Scheduler::lock(int)
-{
-    STATUS const result = taskLock();
-
-    if (ERROR == result && errno != S_intLib_NOT_ISR_CALLABLE)
-	throw std::runtime_error("can't taskLock()!?");
-}
-
-void Task::Scheduler::unlock()
-{
-    if (ERROR == taskUnlock())
-	throw std::logic_error("can't manipulate task scheduler in interrupt "
-			       "routine");
-}
-
-Task::Safety::Safety()
-{
-}
-
-Task::Safety::~Safety() throw()
-{
-}
-
-void Task::Safety::lock(int)
-{
-    taskSafe();
-}
-
-void Task::Safety::unlock()
-{
-    taskUnsafe();
-}
-
-Task::AbsPriority::~AbsPriority() throw()
-{
-}
-
-void Task::AbsPriority::lock(int)
-{
-    int const id = taskIdSelf();
-
-    if (OK == taskPriorityGet(id, &oldValue)) {
-	if (ERROR == taskPrioritySet(id, newValue))
-	    throw std::runtime_error("couldn't set task priority");
-    } else
-	throw std::runtime_error("couldn't get current task priority");
-}
-
-void Task::AbsPriority::unlock()
-{
-    taskPrioritySet(taskIdSelf(), oldValue);
-}
-
-Task::RelPriority::~RelPriority() throw()
-{
-}
-
-void Task::RelPriority::lock(int)
-{
-    int const id = taskIdSelf();
-
-    if (OK == taskPriorityGet(id, &oldValue)) {
-	int const nv = std::max(std::min(oldValue - newValue, 255), 0);
-
-	if (ERROR == taskPrioritySet(id, nv))
-	    throw std::runtime_error("couldn't set task priority");
-    } else
-	throw std::runtime_error("couldn't get current task priority");
-}
-
-void Task::RelPriority::unlock()
-{
-    taskPrioritySet(taskIdSelf(), oldValue);
-}
 
 // This is the entry point for all tasks created with the Task
 // class. It is a static function, so it has no object instance. By
@@ -137,7 +31,7 @@ Task::Task() : id(ERROR)
 
 Task::~Task() throw()
 {
-    Lock lock(Scheduler());
+    SchedLock lock();
 
     if (ERROR != id) {
 	taskDelete(id);

@@ -10,44 +10,23 @@
 
 using namespace vwpp;
 
-// SemBase constructor -- sets the id to the passed semaphore
-// pointer. In VxWorks, a pointer to a sempahore structure is
-// typedef'ed as SEM_ID. If we were passed a bad SEM_ID, we throw an
-// exception.
-
-SemBase::SemBase(semaphore* ii) : id(ii)
+Mutex::Mutex() :
+    SemaphoreBase(semMCreate(SEM_Q_PRIORITY | SEM_DELETE_SAFE |
+			     SEM_INVERSION_SAFE))
 {
-    if (!id)
-	throw std::bad_alloc();
-}
-
-// When any derived object gets destroyed, we need to destroy the
-// semaphore object we own.
-
-SemBase::~SemBase() throw()
-{
-    semDelete(id);
 }
 
 // CountingSemaphore constructor -- Pass the SEM_ID of a counting
 // semaphore to the base class.
 
 CountingSemaphore::CountingSemaphore(int initialCount) :
-    SemBase(semCCreate(SEM_Q_PRIORITY, initialCount))
+    SemaphoreBase(semCCreate(SEM_Q_PRIORITY, initialCount))
 {
 }
 
-// Mutex constructor -- Pass the SEM_ID of the mutex to the base
-// class.
-
-Mutex::Mutex() :
-    SemBase(semMCreate(SEM_Q_PRIORITY | SEM_DELETE_SAFE | SEM_INVERSION_SAFE))
+void SemaphoreBase::acquire(int tmo)
 {
-}
-
-void SemBase::lock(int tmo)
-{
-    if (ERROR == semTake(id, ms_to_tick(tmo)))
+    if (ERROR == semTake(res, ms_to_tick(tmo)))
 	switch (errno) {
 	 case S_intLib_NOT_ISR_CALLABLE:
 	    throw std::logic_error("couldn't lock semaphore -- inside "
@@ -66,15 +45,6 @@ void SemBase::lock(int tmo)
 	    throw std::logic_error("couldn't lock semaphore -- unknown "
 				   "reason");
 	}
-}
-
-void SemBase::unlock()
-{
-    semGive(id);
-}
-
-Lockable::~Lockable() throw()
-{
 }
 
 // Event constructor -- Builds a binary semaphore used for

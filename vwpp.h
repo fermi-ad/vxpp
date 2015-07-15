@@ -4,6 +4,7 @@
 #define __VWPP_H
 
 #include <string>
+#include <algorithm>
 
 #ifndef __INCsemLibh
 
@@ -23,7 +24,32 @@ extern "C" {
 #endif
 
 #ifndef __INCmsgQLibh
+
 struct msg_q;
+
+#endif
+
+#ifndef __INCintLibh
+
+extern "C" {
+    int intLock() throw();
+    int intUnlock(int) throw();
+}
+
+#endif
+
+#ifndef __INCtaskLibh
+
+extern "C" {
+    int taskIdSelf() throw();
+    int taskLock() throw();
+    int taskPriorityGet(int, int*) throw();
+    int taskPrioritySet(int, int) throw();
+    int taskSafe() throw();
+    int taskUnlock() throw();
+    int taskUnsafe() throw();
+}
+
 #endif
 
 // All identifiers of this module are located in the vwpp name space.
@@ -31,7 +57,12 @@ struct msg_q;
 namespace vwpp {
 
     // Any class derived from Uncopyable will cause a compile-time
-    // error if the code tries to copy an instance the class.
+    // error if the code tries to copy an instance the class. Even
+    // though this is only used as a base class, we aren't making the
+    // destructor virtual. This is intention since no valid code will
+    // be upcasting to an Uncopyable. By keeping it non-virtual, these
+    // classes become more lightweight and have more opportunities of
+    // being inlined.
 
     class Uncopyable {
 	Uncopyable(Uncopyable const&);
@@ -39,73 +70,140 @@ namespace vwpp {
 
      public:
 	Uncopyable() throw() {}
-	virtual ~Uncopyable() throw() {}
+	~Uncopyable() throw() {}
     };
 
-    // Classes derived from Lockable can be locked with an instance of
-    // Lock().
+    // Forward declaration so resources can use it to declare who
+    // their friends are.
 
-    class Lockable : public Uncopyable {
-	friend class Lock;
+    template <class Resource> class Hold;
 
-	virtual void lock(int) = 0;
-	virtual void unlock() = 0;
+    // Base class for semaphore-like resources. Again, no methods are
+    // virtual to help the compile inline operations on them.
+
+    class SemaphoreBase : public Uncopyable {
+	semaphore* res;
+	SemaphoreBase();
+
+	friend class Hold<SemaphoreBase>;
+
+	void acquire(int);
+	void release() { semGive(res); }
+
+     protected:
+	explicit SemaphoreBase(semaphore* tmp) : res(tmp) {}
 
      public:
-	~Lockable() throw();
+	~SemaphoreBase() throw() { semDelete(res); }
     };
 
-    // **** This section defines several classes that use the
-    // **** semaphore interface provided by VxWorks.
+    // Mutexes are mutual exclusion locks. They can be locked multiple
+    // times by the same process. They also support priority inversion
+    // and, while a task owns the mutex, it cannot be deleted.
 
-    // This is the base class for the sempahore classes. All VxWorks
-    // mutex-like objects use the same SEM_ID to refer to them, so it
-    // gets encapsulated in this base class. The whole purpose of this
-    // class is to make sure the semaphore handle gets freed up
-    // properly when the object is destroyed.
-
-    class SemBase : public Lockable {
-	semaphore* const id;
-
-	SemBase();
-
-	void lock(int);
-	void unlock();
-
+    class Mutex : public SemaphoreBase {
      public:
-	explicit SemBase(semaphore*);
-	virtual ~SemBase() throw();
+	Mutex();
     };
 
     // This class uses the "Counting" Semaphore as its underlying
     // implementation. Pending tasks are queued by priority.
 
-    class CountingSemaphore : public SemBase {
+    class CountingSemaphore : public SemaphoreBase {
      public:
 	explicit CountingSemaphore(int = 1);
     };
 
-    // This class uses the Mutex semaphore as its underlying
-    // implementation. Pending tasks are queued by priority and are
-    // protected from deletion while owning the mutex. This class also
-    // protects against "priority inversion".
+    // A Hold object holds a resource for its lifetime.
 
-    class Mutex : public SemBase {
+    template <class Resource>
+    class Hold : public Uncopyable {
+	Hold();
+
+	Resource& res;
+
      public:
-	Mutex();
+	explicit Hold(Resource& r, int tmo = -1) : res(r) { res.acquire(tmo); }
+	~Hold() throw() { res.release(); }
     };
 
-    // Lock objects are objects that lock a semaphore during creation
-    // and release them when destroyed.
+    typedef Hold<SemaphoreBase> SemLock;
 
-    class Lock : public Uncopyable {
-	Lockable& obj;
+    // IntLock objects will disable interrupts during their lifetime.
+    // Due to VxWorks' semantics, if a task that created the IntLock
+    // gets blocked, interrupts will get re-enabled (which is a very
+    // useful thing!)
 
-	Lock();
+    class IntLock : public Uncopyable {
+	int oldValue;
 
      public:
-	explicit Lock(Lockable& ll, int tmo = -1) : obj(ll) { obj.lock(tmo); }
-	~Lock() throw() { obj.unlock(); }
+	IntLock() throw() : oldValue(intLock()) {}
+	~IntLock() throw() { intUnlock(oldValue); }
+    };
+
+    // SchedLock objects will disable the task scheduler during the
+    // object's lifetime.
+
+    class SchedLock : public Uncopyable {
+     public:
+	SchedLock() throw() { taskLock(); }
+	~SchedLock() throw() { taskUnlock(); }
+    };
+
+    // ProtLock objects prevent the task that created it from being
+    // destroyed during the object's lifetime.
+
+    class ProtLock : public Uncopyable {
+     public:
+	ProtLock() throw() { taskSafe(); }
+	~ProtLock() throw() { taskUnsafe(); }
+    };
+
+    template <unsigned Prio>
+    class AbsPriority : public Uncopyable {
+	int oldValue;
+
+     public:
+	AbsPriority()
+	{
+	    int const id = taskIdSelf();
+
+	    if (OK == taskPriorityGet(id, &oldValue)) {
+		if (ERROR == taskPrioritySet(id, Prio))
+		    throw std::runtime_error("couldn't set task priority");
+	    } else
+		throw std::runtime_error("couldn't get current task priority");
+	}
+
+	~AbsPriority() throw()
+	{
+	    taskPrioritySet(taskIdSelf(), oldValue);
+	}
+    };
+
+    template <int RelPrio>
+    class RelPriority : public Uncopyable {
+	int oldValue;
+
+     public:
+	RelPriority()
+	{
+	    int const id = taskIdSelf();
+
+	    if (OK == taskPriorityGet(id, &oldValue)) {
+		int const nv = std::max(std::min(oldValue - RelPrio, 255), 0);
+
+		if (ERROR == taskPrioritySet(id, nv))
+		    throw std::runtime_error("couldn't set task priority");
+	    } else
+		throw std::runtime_error("couldn't get current task priority");
+	}
+
+	~RelPriority() throw()
+	{
+	    taskPrioritySet(taskIdSelf(), oldValue);
+	}
     };
 
     // This class is used by tasks to signal each other when something
@@ -119,8 +217,8 @@ namespace vwpp {
 	~Event() throw();
 
 	bool wait(int = -1);
-	void wakeOne() { semGive(id); }
-	void wakeAll() { semFlush(id); }
+	void wakeOne() throw() { semGive(id); }
+	void wakeAll() throw() { semFlush(id); }
     };
 
     // **** This section defines several classes that support the
@@ -173,60 +271,6 @@ namespace vwpp {
     // This class is used to create VxWorks tasks.
 
     class Task : public Uncopyable {
-     protected:
-	class Interrupts : public Lockable {
-	    int oldValue;
-
-	    void lock(int);
-	    void unlock();
-
-	 public:
-	    Interrupts();
-	    ~Interrupts() throw();
-	};
-
-	class Scheduler : public Lockable {
-	    void lock(int);
-	    void unlock();
-
-	 public:
-	    Scheduler();
-	    ~Scheduler() throw();
-	};
-
-	class Safety : public Lockable {
-	    void lock(int);
-	    void unlock();
-
-	 public:
-	    Safety();
-	    ~Safety() throw();
-	};
-
-	class AbsPriority : public Lockable {
-	    int const newValue;
-	    int oldValue;
-
-	    void lock(int);
-	    void unlock();
-
-	 public:
-	    explicit AbsPriority(int nv) : newValue(nv) {}
-	    ~AbsPriority() throw();
-	};
-
-	class RelPriority : public Lockable {
-	    int const newValue;
-	    int oldValue;
-
-	    void lock(int);
-	    void unlock();
-
-	 public:
-	    explicit RelPriority(int nv) : newValue(nv) {}
-	    ~RelPriority() throw();
-	};
-
      private:
 	int id;
 
@@ -237,10 +281,6 @@ namespace vwpp {
 
 	void delay(int) const;
 	void yieldCpu() const { delay(0); }
-
-	static Scheduler scheduler;
-	static Interrupts interrupt;
-	static Safety safety;
 
      public:
 	Task();
