@@ -1,10 +1,17 @@
 Announcing v2.0 of VWPP
 
-    Changes from version 1.3:
+    This is a updated API to the VWPP library. Because some of the changes
+    are not backward compatible, the API's major version number has been
+    incremented.
 
-    - Definitions of vwpp::Lock(), vwpp::~Lock(), vwpp::Event::wakeOne(),
-      and vwpp::Event::wakeAll() were moved into the header so they can be
-      inlined by the compiler.
+    Changes from the 1.x API:
+
+    - The API uses templates instead of a class hierarchy. This allows the
+      compiler to inline the code better.
+
+    - The Interrupt, Scheduler, Protection, and Priority classes have been
+      pulled from the Task class so code that isn't part of a Task object can
+      benefit from the scoping of these locks.
 
 Description
 
