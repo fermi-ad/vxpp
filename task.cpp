@@ -95,7 +95,7 @@ void Task::resume() const
 
 STATUS vwppTestTasks()
 {
-    Lock lock(Task::Scheduler());
+    SchedLock lock();
 
     return OK;
 }

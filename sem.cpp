@@ -106,7 +106,7 @@ STATUS vwppTestSemaphores()
 	    // Lock the mutex. This shouldn't ever throw an exception
 	    // because the mutex isn't accessible to any other task.
 
-	    Lock lock(a);
+	    SemLock lock(a);
 
 	    // Create another scope of a Lock object.
 
@@ -114,7 +114,7 @@ STATUS vwppTestSemaphores()
 		// This shouldn't fail because Mutexes can be locked
 		// several times by the same task.
 
-		Lock lock(a, 60);
+		SemLock lock(a, 60);
 
 		return OK;
 	    }
