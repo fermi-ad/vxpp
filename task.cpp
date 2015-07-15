@@ -66,12 +66,6 @@ int Task::priority() const
     throw std::runtime_error("couldn't get task priority");
 }
 
-void Task::priority(int pri)
-{
-    if (ERROR == taskPrioritySet(id, pri))
-	throw std::runtime_error("couldn't set task priority");
-}
-
 bool Task::isReady() const
 {
     return TRUE == taskIsReady(id);

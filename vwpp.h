@@ -291,7 +291,6 @@ namespace vwpp {
 	char const* name() const;
 
 	int priority() const;
-	void priority(int);
 	void resume() const;
 	void suspend() const;
 
