@@ -4,7 +4,9 @@
 #define __VWPP_H
 
 #include <string>
-#include <algorithm>
+#include <stdexcept>
+
+#define NOTHROW	__attribute__((nothrow))
 
 #ifndef __INCsemLibh
 
@@ -15,10 +17,10 @@
 struct semaphore;
 
 extern "C" {
-    int semDelete(struct semaphore*) throw();
-    int semFlush(struct semaphore*) throw();
-    int semGive(struct semaphore*) throw();
-    int semTake(struct semaphore*, int) throw();
+    int semDelete(struct semaphore*) NOTHROW;
+    int semFlush(struct semaphore*) NOTHROW;
+    int semGive(struct semaphore*) NOTHROW;
+    int semTake(struct semaphore*, int) NOTHROW;
 }
 
 #endif
@@ -32,8 +34,8 @@ struct msg_q;
 #ifndef __INCintLibh
 
 extern "C" {
-    int intLock() throw();
-    int intUnlock(int) throw();
+    int intLock() NOTHROW;
+    int intUnlock(int) NOTHROW;
 }
 
 #endif
@@ -41,13 +43,13 @@ extern "C" {
 #ifndef __INCtaskLibh
 
 extern "C" {
-    int taskIdSelf() throw();
-    int taskLock() throw();
-    int taskPriorityGet(int, int*) throw();
-    int taskPrioritySet(int, int) throw();
-    int taskSafe() throw();
-    int taskUnlock() throw();
-    int taskUnsafe() throw();
+    int taskIdSelf() NOTHROW;
+    int taskLock() NOTHROW;
+    int taskPriorityGet(int, int*) NOTHROW;
+    int taskPrioritySet(int, int) NOTHROW;
+    int taskSafe() NOTHROW;
+    int taskUnlock() NOTHROW;
+    int taskUnsafe() NOTHROW;
 }
 
 #endif
@@ -69,8 +71,8 @@ namespace vwpp {
 	Uncopyable& operator=(Uncopyable const&);
 
      public:
-	Uncopyable() throw() {}
-	~Uncopyable() throw() {}
+	Uncopyable() NOTHROW {}
+	~Uncopyable() NOTHROW {}
     };
 
     // Forward declaration so resources can use it to declare who
@@ -94,7 +96,7 @@ namespace vwpp {
 	explicit SemaphoreBase(semaphore* tmp) : res(tmp) {}
 
      public:
-	~SemaphoreBase() throw() { semDelete(res); }
+	~SemaphoreBase() NOTHROW { semDelete(res); }
     };
 
     // Mutexes are mutual exclusion locks. They can be locked multiple
@@ -124,7 +126,7 @@ namespace vwpp {
 
      public:
 	explicit Hold(Resource& r, int tmo = -1) : res(r) { res.acquire(tmo); }
-	~Hold() throw() { res.release(); }
+	~Hold() NOTHROW { res.release(); }
     };
 
     typedef Hold<SemaphoreBase> SemLock;
@@ -138,8 +140,8 @@ namespace vwpp {
 	int oldValue;
 
      public:
-	IntLock() throw() : oldValue(intLock()) {}
-	~IntLock() throw() { intUnlock(oldValue); }
+	IntLock() NOTHROW : oldValue(intLock()) {}
+	~IntLock() NOTHROW { intUnlock(oldValue); }
     };
 
     // SchedLock objects will disable the task scheduler during the
@@ -147,8 +149,8 @@ namespace vwpp {
 
     class SchedLock : public Uncopyable {
      public:
-	SchedLock() throw() { taskLock(); }
-	~SchedLock() throw() { taskUnlock(); }
+	SchedLock() NOTHROW { taskLock(); }
+	~SchedLock() NOTHROW { taskUnlock(); }
     };
 
     // ProtLock objects prevent the task that created it from being
@@ -156,8 +158,8 @@ namespace vwpp {
 
     class ProtLock : public Uncopyable {
      public:
-	ProtLock() throw() { taskSafe(); }
-	~ProtLock() throw() { taskUnsafe(); }
+	ProtLock() NOTHROW { taskSafe(); }
+	~ProtLock() NOTHROW { taskUnsafe(); }
     };
 
     template <unsigned Prio>
@@ -214,11 +216,11 @@ namespace vwpp {
 
      public:
 	Event();
-	~Event() throw();
+	~Event() NOTHROW;
 
 	bool wait(int = -1);
-	void wakeOne() throw() { semGive(id); }
-	void wakeAll() throw() { semFlush(id); }
+	void wakeOne() NOTHROW { semGive(id); }
+	void wakeAll() NOTHROW { semFlush(id); }
     };
 
     // **** This section defines several classes that support the
@@ -236,7 +238,7 @@ namespace vwpp {
 
      public:
 	QueueBase(size_t, size_t);
-	virtual ~QueueBase() throw();
+	virtual ~QueueBase() NOTHROW;
 
 	size_t total() const;
     };
@@ -284,7 +286,7 @@ namespace vwpp {
 
      public:
 	Task();
-	virtual ~Task() throw();
+	virtual ~Task() NOTHROW;
 
 	bool isReady() const;
 	bool isSuspended() const;

@@ -29,7 +29,7 @@ Task::Task() : id(ERROR)
 {
 }
 
-Task::~Task() throw()
+Task::~Task()
 {
     SchedLock lock();
 

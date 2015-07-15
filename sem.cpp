@@ -4,7 +4,6 @@
 #include <intLib.h>
 #include <semLib.h>
 #include <sysLib.h>
-#include <stdexcept>
 #include <cassert>
 #include "vwpp.h"
 
@@ -57,7 +56,7 @@ Event::Event() :
 	throw std::bad_alloc();
 }
 
-Event::~Event() throw()
+Event::~Event()
 {
     semDelete(id);
 }
