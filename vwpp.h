@@ -187,7 +187,7 @@ namespace vwpp {
 	~AbsPriority() NOTHROW { taskPrioritySet(taskIdSelf(), oldValue); }
     };
 
-    template <int RelPrio>
+    template <int Prio>
     class RelPriority : public Uncopyable {
 	int oldValue;
 
@@ -197,9 +197,10 @@ namespace vwpp {
 	    int const id = taskIdSelf();
 
 	    if (OK == taskPriorityGet(id, &oldValue)) {
-		int const nv = std::max(std::min(oldValue - RelPrio, 255), 0);
+		int const nv = oldValue - Prio;
+		int const np = (nv < 0 ? 0 : (nv > 255 ? 255 : nv));
 
-		if (ERROR == taskPrioritySet(id, nv))
+		if (ERROR == taskPrioritySet(id, np))
 		    throw std::runtime_error("couldn't set task priority");
 	    } else
 		throw std::runtime_error("couldn't get current task priority");
