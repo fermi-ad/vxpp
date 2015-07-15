@@ -6,10 +6,12 @@
 #include <string>
 #include <stdexcept>
 
-#if VX_VERSION > 55
-#define NOTHROW	__attribute__((nothrow))
+#if VX_VERSION > 61
+#define NOTHROW		__attribute__((nothrow))
+#define NOTHROW_IMPL
 #else
-#define NOTHROW
+#define NOTHROW		throw()
+#define NOTHROW_IMPL	throw()
 #endif
 
 #ifndef __INCsemLibh

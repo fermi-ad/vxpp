@@ -54,7 +54,7 @@ Event::Event() :
 	throw std::bad_alloc();
 }
 
-Event::~Event()
+Event::~Event() NOTHROW_IMPL
 {
     semDelete(id);
 }

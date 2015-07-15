@@ -29,7 +29,7 @@ Task::Task() : id(ERROR)
 {
 }
 
-Task::~Task()
+Task::~Task() NOTHROW_IMPL
 {
     SchedLock lock();
 

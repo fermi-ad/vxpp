@@ -42,7 +42,7 @@ QueueBase::QueueBase(size_t sz, size_t nn) :
 	throw std::bad_alloc();
 }
 
-QueueBase::~QueueBase()
+QueueBase::~QueueBase() NOTHROW_IMPL
 {
     msgQDelete(id);
 }
