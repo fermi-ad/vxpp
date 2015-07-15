@@ -96,7 +96,7 @@ namespace vwpp {
 	friend class Hold<SemaphoreBase>;
 
 	void acquire(int);
-	void release() { semGive(res); }
+	void release() NOTHROW { semGive(res); }
 
      protected:
 	explicit SemaphoreBase(semaphore* tmp) : res(tmp) {}
@@ -184,10 +184,7 @@ namespace vwpp {
 		throw std::runtime_error("couldn't get current task priority");
 	}
 
-	~AbsPriority() throw()
-	{
-	    taskPrioritySet(taskIdSelf(), oldValue);
-	}
+	~AbsPriority() NOTHROW { taskPrioritySet(taskIdSelf(), oldValue); }
     };
 
     template <int RelPrio>
@@ -208,10 +205,7 @@ namespace vwpp {
 		throw std::runtime_error("couldn't get current task priority");
 	}
 
-	~RelPriority() throw()
-	{
-	    taskPrioritySet(taskIdSelf(), oldValue);
-	}
+	~RelPriority() NOTHROW { taskPrioritySet(taskIdSelf(), oldValue); }
     };
 
     // This class is used by tasks to signal each other when something
