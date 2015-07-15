@@ -6,7 +6,11 @@
 #include <string>
 #include <stdexcept>
 
+#if VX_VERSION > 55
 #define NOTHROW	__attribute__((nothrow))
+#else
+#define NOTHROW
+#endif
 
 #ifndef __INCsemLibh
 

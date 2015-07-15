@@ -3,8 +3,6 @@
 #include <vxWorks.h>
 #include <intLib.h>
 #include <semLib.h>
-#include <sysLib.h>
-#include <cassert>
 #include "vwpp.h"
 
 using namespace vwpp;
