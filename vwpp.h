@@ -6,6 +6,13 @@
 #include <string>
 #include <stdexcept>
 
+// The throw() specification should actually produce *more* code
+// (because the compiler needs to wrap the function with a try/catch
+// to make sure it doesn't throw anything), but the compilers included
+// with VxWorks 6.1, and earlier, seem to produce better code.
+// Compilers after 6.1 support the GNU attribute which guarantees to
+// produce tight code.
+
 #if VX_VERSION > 61
 #define NOTHROW		__attribute__((nothrow))
 #define NOTHROW_IMPL
@@ -14,11 +21,11 @@
 #define NOTHROW_IMPL	throw()
 #endif
 
-#ifndef __INCsemLibh
-
 // These forward-declared structures and functions are found in
 // <semLib.h>. We don't want to require users of this library to
 // include VxWorks' headers, if they don't need to.
+
+#ifndef __INCsemLibh
 
 struct semaphore;
 
@@ -31,11 +38,19 @@ extern "C" {
 
 #endif
 
+// These forward-declared structures and functions are found in
+// <msgQLib.h>. We don't want to require users of this library to
+// include VxWorks' headers, if they don't need to.
+
 #ifndef __INCmsgQLibh
 
 struct msg_q;
 
 #endif
+
+// These forward-declared structures and functions are found in
+// <intLib.h>. We don't want to require users of this library to
+// include VxWorks' headers, if they don't need to.
 
 #ifndef __INCintLibh
 
@@ -45,6 +60,10 @@ extern "C" {
 }
 
 #endif
+
+// These forward-declared structures and functions are found in
+// <taskLib.h>. We don't want to require users of this library to
+// include VxWorks' headers, if they don't need to.
 
 #ifndef __INCtaskLibh
 
