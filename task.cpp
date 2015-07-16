@@ -48,13 +48,16 @@ void Task::delay(int const dly) const
     taskDelay(ms_to_tick(dly));
 }
 
-void Task::run(char const* name, unsigned char const pri, int const ss)
+void Task::run(char const* const name, unsigned char const pri, int const ss)
 {
-    if (ERROR == (id = taskSpawn(const_cast<char*>(name), pri, VX_FP_TASK, ss,
-				 reinterpret_cast<FUNCPTR>(initTask),
-				 reinterpret_cast<int>(this), 0, 0, 0, 0, 0, 0,
-				 0, 0, 0)))
-	throw std::runtime_error("couldn't start new task");
+    if (ERROR == id) {
+	if (ERROR == (id = taskSpawn(const_cast<char*>(name), pri, VX_FP_TASK,
+				     ss, reinterpret_cast<FUNCPTR>(initTask),
+				     reinterpret_cast<int>(this), 0, 0, 0, 0,
+				     0, 0, 0, 0, 0)))
+	    throw std::runtime_error("couldn't start new task");
+    } else
+	throw std::logic_error("task is already started");
 }
 
 int Task::priority() const
