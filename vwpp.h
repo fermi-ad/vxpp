@@ -104,6 +104,7 @@ namespace vwpp {
     // their friends are.
 
     template <class Resource> class Hold;
+    class Accessor;
 
     // Base class for semaphore-like resources. Again, no methods are
     // virtual to help the compile inline operations on them.
@@ -112,6 +113,7 @@ namespace vwpp {
 	semaphore* res;
 	SemaphoreBase();
 
+	friend class Accessor;
 	friend class Hold<SemaphoreBase>;
 
 	void acquire(int);
@@ -141,6 +143,12 @@ namespace vwpp {
 	explicit CountingSemaphore(int = 1);
     };
 
+    class Accessor : public Uncopyable {
+     protected:
+	void proxy_acquire(SemaphoreBase& res, int tmo) { res.acquire(tmo); }
+	void proxy_release(SemaphoreBase& res) NOTHROW { res.release(); }
+    };
+
     // A Hold object holds a resource for its lifetime.
 
     template <class Resource>
@@ -152,6 +160,13 @@ namespace vwpp {
      public:
 	explicit Hold(Resource& r, int tmo = -1) : res(r) { res.acquire(tmo); }
 	~Hold() NOTHROW { res.release(); }
+    };
+
+    template <Mutex& res>
+    class Lock : public Accessor {
+     public:
+	explicit Lock(int tmo = -1) { proxy_acquire(res, tmo); }
+	~Lock() NOTHROW { proxy_release(res); }
     };
 
     typedef Hold<SemaphoreBase> SemLock;
