@@ -100,12 +100,6 @@ namespace vwpp {
 	~Uncopyable() NOTHROW {}
     };
 
-    // Forward declaration so resources can use it to declare who
-    // their friends are.
-
-    template <class Resource> class Hold;
-    class Accessor;
-
     // Base class for semaphore-like resources. Again, no methods are
     // virtual to help the compile inline operations on them.
 
@@ -114,7 +108,6 @@ namespace vwpp {
 	SemaphoreBase();
 
 	friend class Accessor;
-	friend class Hold<SemaphoreBase>;
 
 	void acquire(int);
 	void release() NOTHROW { semGive(res); }
@@ -126,6 +119,12 @@ namespace vwpp {
 	~SemaphoreBase() NOTHROW { semDelete(res); }
     };
 
+    class Accessor : public Uncopyable {
+     protected:
+	void proxy_acquire(SemaphoreBase& res, int tmo) { res.acquire(tmo); }
+	void proxy_release(SemaphoreBase& res) NOTHROW { res.release(); }
+    };
+
     // Mutexes are mutual exclusion locks. They can be locked multiple
     // times by the same process. They also support priority inversion
     // and, while a task owns the mutex, it cannot be deleted.
@@ -133,6 +132,22 @@ namespace vwpp {
     class Mutex : public SemaphoreBase {
      public:
 	Mutex();
+
+	template <Mutex& mtx, int tmo = -1>
+	class Lock : public Accessor {
+	 public:
+	    Lock() { proxy_acquire(mtx, tmo); }
+	    ~Lock() NOTHROW { proxy_release(mtx); }
+	};
+
+	template <class T, Mutex T::*PMtx, int tmo = -1>
+	class PMLock : public Accessor {
+	    Mutex& mtx;
+
+	 public:
+	    PMLock(T* obj) : mtx(obj->*PMtx) { proxy_acquire(mtx, tmo); }
+	    ~PMLock() NOTHROW { proxy_release(mtx); }
+	};
     };
 
     // This class uses the "Counting" Semaphore as its underlying
@@ -141,32 +156,36 @@ namespace vwpp {
     class CountingSemaphore : public SemaphoreBase {
      public:
 	explicit CountingSemaphore(int = 1);
-    };
 
-    class Accessor : public Uncopyable {
-     protected:
-	void proxy_acquire(SemaphoreBase& res, int tmo) { res.acquire(tmo); }
-	void proxy_release(SemaphoreBase& res) NOTHROW { res.release(); }
+	template <CountingSemaphore& sem, int tmo = -1>
+	class Lock : public Accessor {
+	 public:
+	    Lock() { proxy_acquire(sem, tmo); }
+	    ~Lock() NOTHROW { proxy_release(sem); }
+	};
+
+	template <class T, CountingSemaphore T::*PSem, int tmo = -1>
+	class PMLock : public Accessor {
+	    CountingSemaphore& sem;
+
+	 public:
+	    PMLock(T* obj) : sem(obj->*PSem) { proxy_acquire(sem, tmo); }
+	    ~PMLock() NOTHROW { proxy_release(sem); }
+	};
     };
 
     // A Hold object holds a resource for its lifetime.
 
     template <class Resource>
-    class Hold : public Uncopyable {
+    class Hold : public Accessor {
 	Hold();
 
 	Resource& res;
 
      public:
-	explicit Hold(Resource& r, int tmo = -1) : res(r) { res.acquire(tmo); }
-	~Hold() NOTHROW { res.release(); }
-    };
-
-    template <Mutex& res>
-    class Lock : public Accessor {
-     public:
-	explicit Lock(int tmo = -1) { proxy_acquire(res, tmo); }
-	~Lock() NOTHROW { proxy_release(res); }
+	explicit Hold(Resource& r, int tmo = -1) : res(r)
+	{ proxy_acquire(res, tmo); }
+	~Hold() NOTHROW { proxy_release(res); }
     };
 
     typedef Hold<SemaphoreBase> SemLock;
@@ -177,7 +196,7 @@ namespace vwpp {
     // useful thing!)
 
     class IntLock : public Uncopyable {
-	int oldValue;
+	int const oldValue;
 
      public:
 	IntLock() NOTHROW : oldValue(intLock()) {}
