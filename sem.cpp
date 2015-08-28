@@ -91,31 +91,25 @@ bool Event::wait(int tmo)
 
 // Regression test for semaphore support.
 
+Mutex a;
+
 STATUS vwppTestSemaphores()
 {
     try {
-	// Shouldn't ever throw an exception.
+	// Lock the mutex. This shouldn't ever throw an exception
+	// because the mutex isn't accessible to any other task.
 
-	Mutex a;
+	Mutex::Lock<a> lock;
 
-	// Create a scope for the Lock object's lifetime.
+	// Create another scope of a Lock object.
 
 	{
-	    // Lock the mutex. This shouldn't ever throw an exception
-	    // because the mutex isn't accessible to any other task.
+	    // This shouldn't fail because Mutexes can be locked
+	    // several times by the same task.
 
-	    SemLock lock(a);
+	    Mutex::Lock<a> lock(60);
 
-	    // Create another scope of a Lock object.
-
-	    {
-		// This shouldn't fail because Mutexes can be locked
-		// several times by the same task.
-
-		SemLock lock(a, 60);
-
-		return OK;
-	    }
+	    return OK;
 	}
     }
     catch (std::exception& e) {

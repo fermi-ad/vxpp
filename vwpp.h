@@ -86,10 +86,10 @@ namespace vwpp {
     // Any class derived from Uncopyable will cause a compile-time
     // error if the code tries to copy an instance the class. Even
     // though this is only used as a base class, we aren't making the
-    // destructor virtual. This is intention since no valid code will
-    // be upcasting to an Uncopyable. By keeping it non-virtual, these
-    // classes become more lightweight and have more opportunities of
-    // being inlined.
+    // destructor virtual. This is intentional since no valid code
+    // will be upcasting to an Uncopyable. By keeping it non-virtual,
+    // these classes become more lightweight and have more
+    // opportunities of being inlined.
 
     class Uncopyable {
 	Uncopyable(Uncopyable const&);
@@ -104,25 +104,17 @@ namespace vwpp {
     // virtual to help the compile inline operations on them.
 
     class SemaphoreBase : public Uncopyable {
-	semaphore* res;
+	semaphore* const res;
 	SemaphoreBase();
 
-	friend class Accessor;
-
+     protected:
 	void acquire(int);
 	void release() NOTHROW { semGive(res); }
 
-     protected:
-	explicit SemaphoreBase(semaphore* tmp) : res(tmp) {}
+	explicit SemaphoreBase(semaphore* const tmp) : res(tmp) {}
 
      public:
 	~SemaphoreBase() NOTHROW { semDelete(res); }
-    };
-
-    class Accessor : public Uncopyable {
-     protected:
-	void proxy_acquire(SemaphoreBase& res, int tmo) { res.acquire(tmo); }
-	void proxy_release(SemaphoreBase& res) NOTHROW { res.release(); }
     };
 
     // Mutexes are mutual exclusion locks. They can be locked multiple
@@ -130,24 +122,42 @@ namespace vwpp {
     // and, while a task owns the mutex, it cannot be deleted.
 
     class Mutex : public SemaphoreBase {
-     public:
-	Mutex();
+	template <Mutex& mtx> friend class Lock;
+	template <class T, Mutex T::*PMtx> friend class PMLock;
 
-	template <Mutex& mtx, int tmo = -1>
-	class Lock : public Accessor {
+     public:
+	template <Mutex& mtx>
+	class Lock : public Uncopyable {
 	 public:
-	    Lock() { proxy_acquire(mtx, tmo); }
-	    ~Lock() NOTHROW { proxy_release(mtx); }
+	    explicit Lock(int tmo = -1) { mtx.acquire(tmo); }
+	    ~Lock() NOTHROW { mtx.release(); }
 	};
 
-	template <class T, Mutex T::*PMtx, int tmo = -1>
-	class PMLock : public Accessor {
+	template <class T, Mutex T::*PMtx>
+	class PMLock : public Uncopyable {
 	    Mutex& mtx;
 
 	 public:
-	    PMLock(T* obj) : mtx(obj->*PMtx) { proxy_acquire(mtx, tmo); }
-	    ~PMLock() NOTHROW { proxy_release(mtx); }
+	    explicit PMLock(T* const obj, int const tmo = -1) :
+		mtx(obj->*PMtx)
+	    { mtx.acquire(tmo); }
+
+	    ~PMLock() NOTHROW { mtx.release(); }
 	};
+
+	Mutex();
+    };
+
+    template <class T, Mutex& mtx>
+    class MVar : public Uncopyable {
+	T value;
+
+     public:
+	MVar() : value(T()) {}
+	explicit MVar(T const& o) : value(o) {}
+
+	T operator()(Mutex::Lock<mtx>&) const { return value; }
+	void operator()(Mutex::Lock<mtx>&, T const& o) { value = o; }
     };
 
     // This class uses the "Counting" Semaphore as its underlying
@@ -157,38 +167,25 @@ namespace vwpp {
      public:
 	explicit CountingSemaphore(int = 1);
 
-	template <CountingSemaphore& sem, int tmo = -1>
-	class Lock : public Accessor {
+	template <CountingSemaphore& sem>
+	class Lock : public Uncopyable {
 	 public:
-	    Lock() { proxy_acquire(sem, tmo); }
-	    ~Lock() NOTHROW { proxy_release(sem); }
+	    explicit Lock(int tmo = -1) { sem.acquire(tmo); }
+	    ~Lock() NOTHROW { sem.release(); }
 	};
 
-	template <class T, CountingSemaphore T::*PSem, int tmo = -1>
-	class PMLock : public Accessor {
+	template <class T, CountingSemaphore T::*PSem>
+	class PMLock : public Uncopyable {
 	    CountingSemaphore& sem;
 
 	 public:
-	    PMLock(T* obj) : sem(obj->*PSem) { proxy_acquire(sem, tmo); }
-	    ~PMLock() NOTHROW { proxy_release(sem); }
+	    explicit PMLock(T* const obj, int const tmo = -1) :
+		sem(obj->*PSem)
+	    { sem.acquire(tmo); }
+
+	    ~PMLock() NOTHROW { sem.release(); }
 	};
     };
-
-    // A Hold object holds a resource for its lifetime.
-
-    template <class Resource>
-    class Hold : public Accessor {
-	Hold();
-
-	Resource& res;
-
-     public:
-	explicit Hold(Resource& r, int tmo = -1) : res(r)
-	{ proxy_acquire(res, tmo); }
-	~Hold() NOTHROW { proxy_release(res); }
-    };
-
-    typedef Hold<SemaphoreBase> SemLock;
 
     // IntLock objects will disable interrupts during their lifetime.
     // Due to VxWorks' semantics, if a task that created the IntLock
