@@ -13,6 +13,10 @@ Announcing v2.0 of VWPP
       pulled from the Task class so code that isn't part of a Task object can
       benefit from the scoping of these locks.
 
+    - Due to more agressive use of templates, this version no longer compiles
+      under the 5.5 compiler. If you wish to use the new API, your front-end
+      must be using a 6.x kernel (which is a good idea anyway.)
+
 Description
 
     VWPP is a C++ library that wraps the VxWorks concurrency primitives. The
@@ -23,8 +27,8 @@ Description
 
 System Preparation
 
-    VWPP has been built for every supported target under VxWorks 5.5, 6.1, 6.4
-    and 6.7. If you run across any incompatibilities, please let the Front-End
+    VWPP has been built for every supported target under VxWorks 6.1, 6.4 and
+    6.7. If you run across any incompatibilities, please let the Front-End
     Group <fe-group@fnal.gov> know.
 
 Location
@@ -34,11 +38,6 @@ Location
     area.
 
     BSP        VxWorks    File
-
-    mv2303     5.5        vxworks_boot/v5.5/module/mv2303/vwpp-2.0.out
-    mv2401     5.5        vxworks_boot/v5.5/module/mv2401/vwpp-2.0.out
-    mv2434     5.5        vxworks_boot/v5.5/module/mv2434/vwpp-2.0.out
-    mv5500     5.5        vxworks_boot/v5.5/module/mv5500/vwpp-2.0.out
 
     mv2401     6.1        vxworks_boot/v6.1/module/mv2401/vwpp-2.0.out
     mv2434     6.1        vxworks_boot/v6.1/module/mv2434/vwpp-2.0.out
