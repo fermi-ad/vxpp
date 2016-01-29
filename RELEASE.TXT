@@ -1,41 +1,53 @@
-Announcing v2.0 of VWPP
-
-    This is a updated API to the VWPP library. Because some of the changes
-    are not backward compatible, the API's major version number has been
-    incremented.
-
-    Changes from the 1.x API:
-
-    - The API uses templates instead of a class hierarchy. This allows the
-      compiler to inline the code better.
-
-    - The Interrupt, Scheduler, Protection, and Priority classes have been
-      pulled from the Task class so code that isn't part of a Task object can
-      benefit from the scoping of these locks.
-
-    - Due to more agressive use of templates, this version no longer compiles
-      under the 5.5 compiler. If you wish to use the new API, your front-end
-      must be using a 6.x kernel (which is a good idea anyway.)
-
 Description
 
-    VWPP is a C++ library that wraps the VxWorks concurrency primitives. The
-    C++ classes implement modern C++ programming styles in managing resources.
-    This library is documented at
+    VWPP is a C++ library that wraps VxWorks concurrency primitives
+    with type- and exception-safe objects. These classes manage
+    resources using modern C++ idioms. This library is documented at
 
         http://www-bd.fnal.gov/issues/wiki/Vwpp
 
+Announcing v2.0 of VWPP
+
+    This is an exciting, updated API to the VWPP library. Because some
+    of the changes are not backward compatible, the API's major
+    version number has been incremented.
+
+    Great strides have been made to keep the API simple, yet enforce
+    correct mutex usage _at_compile_time_! The "magic" is accomplished
+    via C++ templates which allows us to check more conditions at
+    compile-time. It also allows more inlining, so the generated code
+    is as efficient as proven-correct C code.
+
+    Sound like hype? We encourage you to read the documentation! Never
+    use semGive()/semTake() again!
+
+    Changes from the 1.x API:
+
+    - The API uses templates instead of a class hierarchy. This allows
+      the compiler to inline the code better (especially under VxWorks
+      6.7!). It also enforces the correct usage of mutexes at compile
+      time.
+
+    - The Interrupt, Scheduler, Protection, and Priority classes have
+      been pulled from the Task class so code that isn't part of a
+      Task object can benefit from the scoping of these locks.
+
+    - Due to more agressive use of templates, this version no longer
+      compiles under the 5.5 compiler. If you wish to use the new API,
+      your front-end must be using a 6.x kernel (which is a good idea
+      anyway.)
+
 System Preparation
 
-    VWPP has been built for every supported target under VxWorks 6.1, 6.4 and
-    6.7. If you run across any incompatibilities, please let the Front-End
-    Group <fe-group@fnal.gov> know.
+    VWPP has been built for every supported target under VxWorks 6.1,
+    6.4 and 6.7. If you run across any incompatibilities, please let
+    the Front-End Group <fe-group@fnal.gov> know.
 
 Location
 
-    Our development environment now supports quite a few combinations of
-    hardware and software platforms. Be sure to download from the appropriate
-    area.
+    Our development environment now supports quite a few combinations
+    of hardware and software platforms. Be sure to download from the
+    appropriate area.
 
     BSP        VxWorks    File
 
