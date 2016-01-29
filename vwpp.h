@@ -114,7 +114,7 @@ namespace vwpp {
 	explicit SemaphoreBase(semaphore* const tmp) : res(tmp) {}
 
      public:
-	~SemaphoreBase() NOTHROW { semDelete(res); }
+	virtual ~SemaphoreBase() NOTHROW { semDelete(res); }
     };
 
     // Mutexes are mutual exclusion locks. They can be locked multiple
@@ -133,13 +133,13 @@ namespace vwpp {
 	    ~Lock() NOTHROW { mtx.release(); }
 	};
 
-	template <class T, Mutex T::*PMtx>
+	template <class T, Mutex T::*pmtx>
 	class PMLock : public Uncopyable {
 	    Mutex& mtx;
 
 	 public:
 	    explicit PMLock(T* const obj, int const tmo = -1) :
-		mtx(obj->*PMtx)
+		mtx(obj->*pmtx)
 	    { mtx.acquire(tmo); }
 
 	    ~PMLock() NOTHROW { mtx.release(); }
