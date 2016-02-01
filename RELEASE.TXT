@@ -6,36 +6,11 @@ Description
 
         http://www-bd.fnal.gov/issues/wiki/Vwpp
 
-Announcing v2.0 of VWPP
+Announcing v2.1 of VWPP
 
-    This is an exciting, updated API to the VWPP library. Because some
-    of the changes are not backward compatible, the API's major
-    version number has been incremented.
+    Changes from 2.0:
 
-    Great strides have been made to keep the API simple, yet enforce
-    correct mutex usage _at_compile_time_! The "magic" is accomplished
-    via C++ templates which allows us to check more conditions at
-    compile-time. It also allows more inlining, so the generated code
-    is as efficient as proven-correct C code.
-
-    Sound like hype? We encourage you to read the documentation! Never
-    use semGive()/semTake() again!
-
-    Changes from the 1.x API:
-
-    - The API uses templates instead of a class hierarchy. This allows
-      the compiler to inline the code better (especially under VxWorks
-      6.7!). It also enforces the correct usage of mutexes at compile
-      time.
-
-    - The Interrupt, Scheduler, Protection, and Priority classes have
-      been pulled from the Task class so code that isn't part of a
-      Task object can benefit from the scoping of these locks.
-
-    - Due to more agressive use of templates, this version no longer
-      compiles under the 5.5 compiler. If you wish to use the new API,
-      your front-end must be using a 6.x kernel (which is a good idea
-      anyway.)
+    - 
 
 System Preparation
 
@@ -51,21 +26,21 @@ Location
 
     BSP        VxWorks    File
 
-    mv2401     6.1        vxworks_boot/v6.1/module/mv2401/vwpp-2.0.out
-    mv2434     6.1        vxworks_boot/v6.1/module/mv2434/vwpp-2.0.out
-    mv5500     6.1        vxworks_boot/v6.1/module/mv5500/vwpp-2.0.out
+    mv2401     6.1        vxworks_boot/v6.1/module/mv2401/vwpp-2.1.out
+    mv2434     6.1        vxworks_boot/v6.1/module/mv2434/vwpp-2.1.out
+    mv5500     6.1        vxworks_boot/v6.1/module/mv5500/vwpp-2.1.out
 
-    mv2401     6.4        vxworks_boot/v6.4/module/mv2401/vwpp-2.0.out
-    mv2434     6.4        vxworks_boot/v6.4/module/mv2434/vwpp-2.0.out
-    mv5500     6.4        vxworks_boot/v6.4/module/mv5500/vwpp-2.0.out
+    mv2401     6.4        vxworks_boot/v6.4/module/mv2401/vwpp-2.1.out
+    mv2434     6.4        vxworks_boot/v6.4/module/mv2434/vwpp-2.1.out
+    mv5500     6.4        vxworks_boot/v6.4/module/mv5500/vwpp-2.1.out
 
-    mv2401     6.7        vxworks_boot/v6.7/module/mv2401/vwpp-2.0.out
-    mv2434     6.7        vxworks_boot/v6.7/module/mv2434/vwpp-2.0.out
-    mv5500     6.7        vxworks_boot/v6.7/module/mv5500/vwpp-2.0.out
+    mv2401     6.7        vxworks_boot/v6.7/module/mv2401/vwpp-2.1.out
+    mv2434     6.7        vxworks_boot/v6.7/module/mv2434/vwpp-2.1.out
+    mv5500     6.7        vxworks_boot/v6.7/module/mv5500/vwpp-2.1.out
 
     Rather than load this module, one could also link their module
     with the static library. For instance, to build a module called
     demo.out, a Makefile might define the rule as:
 
-        demo.out : demo.o ${PRODUCTS_LIBDIR}/libvwpp-2.0.a
+        demo.out : demo.o ${PRODUCTS_LIBDIR}/libvwpp-2.1.a
 	        ${make-mod}
