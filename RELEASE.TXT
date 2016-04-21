@@ -1,8 +1,8 @@
 Description
 
-    VWPP is a C++ library that wraps VxWorks concurrency primitives
-    with type- and exception-safe objects. These classes manage
-    resources using modern C++ idioms. This library is documented at
+    VWPP is a C++ library that wraps VxWorks concurrency primitives with type-
+    and exception-safe objects. These classes manage resources using modern C++
+    idioms. This library is documented at
 
         http://www-bd.fnal.gov/issues/wiki/Vwpp
 
@@ -15,23 +15,21 @@ Announcing v2.1 of VWPP
       prevent mutexes and their locks from being created on the stack (where
       an object's lifetime is less-defined.)
 
+    - We no longer support VxWorks 6.1.
+
 System Preparation
 
-    VWPP has been built for every supported target under VxWorks 6.1,
-    6.4 and 6.7. If you run across any incompatibilities, please let
-    the Front-End Group <fe-group@fnal.gov> know.
+    VWPP has been built for every supported target under VxWorks 6.4 and 6.7.
+    If you run across any incompatibilities, please let the Front-End Group
+    <fe-group@fnal.gov> know.
 
 Location
 
-    Our development environment now supports quite a few combinations
-    of hardware and software platforms. Be sure to download from the
-    appropriate area.
+    Our development environment now supports quite a few combinations of
+    hardware and software platforms. Be sure to download from the appropriate
+    area.
 
     BSP        VxWorks    File
-
-    mv2401     6.1        vxworks_boot/v6.1/module/mv2401/vwpp-2.1.out
-    mv2434     6.1        vxworks_boot/v6.1/module/mv2434/vwpp-2.1.out
-    mv5500     6.1        vxworks_boot/v6.1/module/mv5500/vwpp-2.1.out
 
     mv2401     6.4        vxworks_boot/v6.4/module/mv2401/vwpp-2.1.out
     mv2434     6.4        vxworks_boot/v6.4/module/mv2434/vwpp-2.1.out
@@ -41,9 +39,9 @@ Location
     mv2434     6.7        vxworks_boot/v6.7/module/mv2434/vwpp-2.1.out
     mv5500     6.7        vxworks_boot/v6.7/module/mv5500/vwpp-2.1.out
 
-    Rather than load this module, one could also link their module
-    with the static library. For instance, to build a module called
-    demo.out, a Makefile might define the rule as:
+    Rather than load this module, one could also link their module with the
+    static library. For instance, to build a module called demo.out, a Makefile
+    might define the rule as:
 
         demo.out : demo.o ${PRODUCTS_LIBDIR}/libvwpp-2.1.a
 	        ${make-mod}
