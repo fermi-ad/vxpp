@@ -10,7 +10,10 @@ Announcing v2.1 of VWPP
 
     Changes from 2.0:
 
-    - 
+    - Added a "mix-in" class called NoHeap. Any class derived from this class
+      prevents instances from being allocated on the heap. VWPP uses this to
+      prevent mutexes and their locks from being created on the stack (where
+      an object's lifetime is less-defined.)
 
 System Preparation
 
