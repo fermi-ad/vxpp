@@ -113,7 +113,7 @@ namespace vwpp {
 
     // Base class for semaphore-like resources.
 
-    class SemaphoreBase : public Uncopyable, NoHeap {
+    class SemaphoreBase : private Uncopyable, private NoHeap {
 	semaphore* const res;
 	SemaphoreBase();
 
@@ -137,14 +137,14 @@ namespace vwpp {
 
      public:
 	template <Mutex& mtx>
-	class Lock : public Uncopyable, public NoHeap {
+	class Lock : private Uncopyable, private NoHeap {
 	 public:
 	    explicit Lock(int tmo = -1) { mtx.acquire(tmo); }
 	    ~Lock() NOTHROW { mtx.release(); }
 	};
 
 	template <class T, Mutex T::*pmtx>
-	class PMLock : public Uncopyable, public NoHeap {
+	class PMLock : private Uncopyable, private NoHeap {
 	    Mutex& mtx;
 
 	 public:
@@ -159,7 +159,7 @@ namespace vwpp {
     };
 
     template <class T, Mutex& mtx>
-    class MVar : public Uncopyable, public NoHeap {
+    class MVar : private Uncopyable, private NoHeap {
 	T value;
 
      public:
@@ -178,14 +178,14 @@ namespace vwpp {
 	explicit CountingSemaphore(int = 1);
 
 	template <CountingSemaphore& sem>
-	class Lock : public Uncopyable {
+	class Lock : private Uncopyable, private NoHeap {
 	 public:
 	    explicit Lock(int tmo = -1) { sem.acquire(tmo); }
 	    ~Lock() NOTHROW { sem.release(); }
 	};
 
 	template <class T, CountingSemaphore T::*PSem>
-	class PMLock : public Uncopyable {
+	class PMLock : private Uncopyable, private NoHeap {
 	    CountingSemaphore& sem;
 
 	 public:
@@ -202,7 +202,7 @@ namespace vwpp {
     // gets blocked, interrupts will get re-enabled (which is a very
     // useful thing!)
 
-    class IntLock : public Uncopyable, public NoHeap {
+    class IntLock : private Uncopyable, private NoHeap {
 	int const oldValue;
 
      public:
@@ -213,7 +213,7 @@ namespace vwpp {
     // SchedLock objects will disable the task scheduler during the
     // object's lifetime.
 
-    class SchedLock : public Uncopyable, public NoHeap {
+    class SchedLock : private Uncopyable, private NoHeap {
      public:
 	SchedLock() NOTHROW { taskLock(); }
 	~SchedLock() NOTHROW { taskUnlock(); }
@@ -222,14 +222,14 @@ namespace vwpp {
     // ProtLock objects prevent the task that created it from being
     // destroyed during the object's lifetime.
 
-    class ProtLock : public Uncopyable, public NoHeap {
+    class ProtLock : private Uncopyable, private NoHeap {
      public:
 	ProtLock() NOTHROW { taskSafe(); }
 	~ProtLock() NOTHROW { taskUnsafe(); }
     };
 
     template <unsigned Prio>
-    class AbsPriority : public Uncopyable, public NoHeap {
+    class AbsPriority : private Uncopyable, private NoHeap {
 	int oldValue;
 
      public:
@@ -248,7 +248,7 @@ namespace vwpp {
     };
 
     template <int Prio>
-    class RelPriority : public Uncopyable, public NoHeap {
+    class RelPriority : private Uncopyable, private NoHeap {
 	int oldValue;
 
      public:
@@ -272,7 +272,7 @@ namespace vwpp {
     // This class is used by tasks to signal each other when something
     // of interest has happened.
 
-    class Event : public Uncopyable, public NoHeap {
+    class Event : private Uncopyable, private NoHeap {
 	semaphore* id;
 
      public:
@@ -287,7 +287,7 @@ namespace vwpp {
     // **** This section defines several classes that support the
     // **** message queue interface provided by VxWorks.
 
-    class QueueBase : public Uncopyable {
+    class QueueBase : private Uncopyable {
 	msg_q* const id;
 
 	bool _msg_send(void const*, size_t, int, int);
@@ -333,7 +333,7 @@ namespace vwpp {
 
     // This class is used to create VxWorks tasks.
 
-    class Task : public Uncopyable {
+    class Task : private Uncopyable {
      private:
 	int id;
 
