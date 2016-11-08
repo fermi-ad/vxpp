@@ -30,9 +30,8 @@ System Preparation
 
 Location
 
-    Our development environment now supports quite a few combinations of
-    hardware and software platforms. Be sure to download from the appropriate
-    area.
+    Our development environment supports several combinations of hardware and
+    software platforms. Be sure to download from the appropriate area.
 
     BSP        VxWorks    File
 
