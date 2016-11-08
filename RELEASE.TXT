@@ -1,3 +1,5 @@
+Announcing v2.2 of VWPP
+
 Description
 
     VWPP is a C++ library that wraps VxWorks concurrency primitives with type-
@@ -6,20 +8,9 @@ Description
 
         http://www-bd.fnal.gov/issues/wiki/Vwpp
 
-Announcing v2.1 of VWPP
+Changes from 2.1:
 
-    Changes from 2.0:
-
-    - Added a "mix-in" class called NoHeap. Any class derived from this class
-      prevents instances from being allocated on the heap. VWPP uses this to
-      prevent mutexes and their locks from being created on the heap (where
-      an object's lifetime is less-defined.)
-
-    - Add two macros, LIKELY() and UNLIKELY(), to help with branch prediction.
-      Use them in the conditional expression of an if-statement to give hints
-      to the compiler which branch will be taken.
-
-    - We no longer support VxWorks 6.1.
+    - 
 
 System Preparation
 
@@ -35,17 +26,17 @@ Location
 
     BSP        VxWorks    File
 
-    mv2401     6.4        vxworks_boot/v6.4/module/mv2401/vwpp-2.1.out
-    mv2434     6.4        vxworks_boot/v6.4/module/mv2434/vwpp-2.1.out
-    mv5500     6.4        vxworks_boot/v6.4/module/mv5500/vwpp-2.1.out
+    mv2401     6.4        vxworks_boot/v6.4/module/mv2401/vwpp-2.2.out
+    mv2434     6.4        vxworks_boot/v6.4/module/mv2434/vwpp-2.2.out
+    mv5500     6.4        vxworks_boot/v6.4/module/mv5500/vwpp-2.2.out
 
-    mv2401     6.7        vxworks_boot/v6.7/module/mv2401/vwpp-2.1.out
-    mv2434     6.7        vxworks_boot/v6.7/module/mv2434/vwpp-2.1.out
-    mv5500     6.7        vxworks_boot/v6.7/module/mv5500/vwpp-2.1.out
+    mv2401     6.7        vxworks_boot/v6.7/module/mv2401/vwpp-2.2.out
+    mv2434     6.7        vxworks_boot/v6.7/module/mv2434/vwpp-2.2.out
+    mv5500     6.7        vxworks_boot/v6.7/module/mv5500/vwpp-2.2.out
 
     Rather than load this module, one could also link their module with the
     static library. For instance, to build a module called demo.out, a Makefile
     might define the rule as:
 
-        demo.out : demo.o ${PRODUCTS_LIBDIR}/libvwpp-2.1.a
+        demo.out : demo.o ${PRODUCTS_LIBDIR}/libvwpp-2.2.a
 	        ${make-mod}
