@@ -3,6 +3,9 @@
 #ifndef __VWPP_H
 #define __VWPP_H
 
+#define LIKELY(x)	__builtin_expect(!!(x), 1)
+#define UNLIKELY(x)	__builtin_expect(!!(x), 0)
+
 #include <string>
 #include <stdexcept>
 

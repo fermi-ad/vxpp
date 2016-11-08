@@ -15,6 +15,10 @@ Announcing v2.1 of VWPP
       prevent mutexes and their locks from being created on the heap (where
       an object's lifetime is less-defined.)
 
+    - Add two macros, LIKELY() and UNLIKELY(), to help with branch prediction.
+      Use them in the conditional expression of an if-statement to give hints
+      to the compiler which branch will be taken.
+
     - We no longer support VxWorks 6.1.
 
 System Preparation
