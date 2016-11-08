@@ -51,7 +51,7 @@ size_t QueueBase::total() const
 {
     int const result = msgQNumMsgs(id);
 
-    if (ERROR != result)
+    if (LIKELY(ERROR != result))
 	return static_cast<size_t>(result);
 
     throw std::runtime_error("queue couldn't return total");
@@ -61,11 +61,11 @@ bool QueueBase::_pop_front(void* buf, size_t nn, int tmo)
 {
     int const result = msgQReceive(id, reinterpret_cast<char*>(buf), nn, ms_to_tick(tmo));
 
-    if (ERROR != result) {
+    if (LIKELY(ERROR != result)) {
 	if ((size_t) result < nn)
 	    throw std::logic_error("too little data pulled from queue");
 	return true;
-    } else if (errno != S_objLib_OBJ_TIMEOUT)
+    } else if (UNLIKELY(errno != S_objLib_OBJ_TIMEOUT))
 	xlatErrno(errno);
     return false;
 }
@@ -76,11 +76,11 @@ bool QueueBase::_msg_send(void const* buf, size_t nn, int tmo, int pri)
 	msgQSend(id, const_cast<char*>(reinterpret_cast<char const*>(buf)), nn,
 		 ms_to_tick(tmo), pri);
 
-    if (ERROR != result) {
+    if (LIKELY(ERROR != result)) {
 	if ((size_t) result < nn)
 	    throw std::logic_error("too little data sent to queue");
 	return true;
-    } else if (errno != S_objLib_OBJ_TIMEOUT)
+    } else if (UNLIKELY(errno != S_objLib_OBJ_TIMEOUT))
 	xlatErrno(errno);
     return false;
 }
