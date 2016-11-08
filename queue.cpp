@@ -36,7 +36,7 @@ static void xlatErrno(int e)
 }
 
 QueueBase::QueueBase(size_t sz, size_t nn) :
-    id(msgQCreate(nn, sz, MSG_Q_PRIORITY))
+    id(::msgQCreate(nn, sz, MSG_Q_PRIORITY))
 {
     if (!id)
 	throw std::bad_alloc();
@@ -44,12 +44,12 @@ QueueBase::QueueBase(size_t sz, size_t nn) :
 
 QueueBase::~QueueBase() NOTHROW_IMPL
 {
-    msgQDelete(id);
+    ::msgQDelete(id);
 }
 
 size_t QueueBase::total() const
 {
-    int const result = msgQNumMsgs(id);
+    int const result = ::msgQNumMsgs(id);
 
     if (LIKELY(ERROR != result))
 	return static_cast<size_t>(result);
@@ -59,7 +59,8 @@ size_t QueueBase::total() const
 
 bool QueueBase::_pop_front(void* buf, size_t nn, int tmo)
 {
-    int const result = msgQReceive(id, reinterpret_cast<char*>(buf), nn, ms_to_tick(tmo));
+    int const result = ::msgQReceive(id, reinterpret_cast<char*>(buf), nn,
+				     ms_to_tick(tmo));
 
     if (LIKELY(ERROR != result)) {
 	if ((size_t) result < nn)
@@ -73,8 +74,8 @@ bool QueueBase::_pop_front(void* buf, size_t nn, int tmo)
 bool QueueBase::_msg_send(void const* buf, size_t nn, int tmo, int pri)
 {
     int const result =
-	msgQSend(id, const_cast<char*>(reinterpret_cast<char const*>(buf)), nn,
-		 ms_to_tick(tmo), pri);
+	::msgQSend(id, const_cast<char*>(reinterpret_cast<char const*>(buf)),
+		   nn, ms_to_tick(tmo), pri);
 
     if (LIKELY(ERROR != result)) {
 	if ((size_t) result < nn)

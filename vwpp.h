@@ -122,12 +122,12 @@ namespace vwpp {
 
      protected:
 	void acquire(int);
-	void release() NOTHROW { semGive(res); }
+	void release() NOTHROW { ::semGive(res); }
 
 	explicit SemaphoreBase(semaphore* const tmp) : res(tmp) {}
 
      public:
-	virtual ~SemaphoreBase() NOTHROW { semDelete(res); }
+	virtual ~SemaphoreBase() NOTHROW { ::semDelete(res); }
     };
 
     // Mutexes are mutual exclusion locks. They can be locked multiple
@@ -209,8 +209,8 @@ namespace vwpp {
 	int const oldValue;
 
      public:
-	IntLock() NOTHROW : oldValue(intLock()) {}
-	~IntLock() NOTHROW { intUnlock(oldValue); }
+	IntLock() NOTHROW : oldValue(::intLock()) {}
+	~IntLock() NOTHROW { ::intUnlock(oldValue); }
     };
 
     // SchedLock objects will disable the task scheduler during the
@@ -218,8 +218,8 @@ namespace vwpp {
 
     class SchedLock : private Uncopyable, private NoHeap {
      public:
-	SchedLock() NOTHROW { taskLock(); }
-	~SchedLock() NOTHROW { taskUnlock(); }
+	SchedLock() NOTHROW { ::taskLock(); }
+	~SchedLock() NOTHROW { ::taskUnlock(); }
     };
 
     // ProtLock objects prevent the task that created it from being
@@ -227,8 +227,8 @@ namespace vwpp {
 
     class ProtLock : private Uncopyable, private NoHeap {
      public:
-	ProtLock() NOTHROW { taskSafe(); }
-	~ProtLock() NOTHROW { taskUnsafe(); }
+	ProtLock() NOTHROW { ::taskSafe(); }
+	~ProtLock() NOTHROW { ::taskUnsafe(); }
     };
 
     template <unsigned Prio>
@@ -238,16 +238,16 @@ namespace vwpp {
      public:
 	AbsPriority()
 	{
-	    int const id = taskIdSelf();
+	    int const id = ::taskIdSelf();
 
-	    if (LIKELY(OK == taskPriorityGet(id, &oldValue))) {
-		if (UNLIKELY(ERROR == taskPrioritySet(id, Prio)))
+	    if (LIKELY(OK == ::taskPriorityGet(id, &oldValue))) {
+		if (UNLIKELY(ERROR == ::taskPrioritySet(id, Prio)))
 		    throw std::runtime_error("couldn't set task priority");
 	    } else
 		throw std::runtime_error("couldn't get current task priority");
 	}
 
-	~AbsPriority() NOTHROW { taskPrioritySet(taskIdSelf(), oldValue); }
+	~AbsPriority() NOTHROW { ::taskPrioritySet(::taskIdSelf(), oldValue); }
     };
 
     template <int Prio>
@@ -257,19 +257,19 @@ namespace vwpp {
      public:
 	RelPriority()
 	{
-	    int const id = taskIdSelf();
+	    int const id = ::taskIdSelf();
 
-	    if (LIKELY(OK == taskPriorityGet(id, &oldValue))) {
+	    if (LIKELY(OK == ::taskPriorityGet(id, &oldValue))) {
 		int const nv = oldValue - Prio;
 		int const np = (nv < 0 ? 0 : (nv > 255 ? 255 : nv));
 
-		if (UNLIKELY(ERROR == taskPrioritySet(id, np)))
+		if (UNLIKELY(ERROR == ::taskPrioritySet(id, np)))
 		    throw std::runtime_error("couldn't set task priority");
 	    } else
 		throw std::runtime_error("couldn't get current task priority");
 	}
 
-	~RelPriority() NOTHROW { taskPrioritySet(taskIdSelf(), oldValue); }
+	~RelPriority() NOTHROW { ::taskPrioritySet(::taskIdSelf(), oldValue); }
     };
 
     // This class is used by tasks to signal each other when something
@@ -283,8 +283,8 @@ namespace vwpp {
 	~Event() NOTHROW;
 
 	bool wait(int = -1);
-	void wakeOne() NOTHROW { semGive(id); }
-	void wakeAll() NOTHROW { semFlush(id); }
+	void wakeOne() NOTHROW { ::semGive(id); }
+	void wakeAll() NOTHROW { ::semFlush(id); }
     };
 
     // **** This section defines several classes that support the

@@ -20,7 +20,7 @@ void Task::initTask(Task* tt)
 	tt->taskEntry();
     }
     catch (...) {
-	taskSuspend(0);
+	::taskSuspend(0);
     }
     tt->id = ERROR;
 }
@@ -34,7 +34,7 @@ Task::~Task() NOTHROW_IMPL
     SchedLock lock();
 
     if (ERROR != id) {
-	taskDelete(id);
+	::taskDelete(id);
 	id = ERROR;
     }
 }
@@ -45,16 +45,16 @@ Task::~Task() NOTHROW_IMPL
 
 void Task::delay(int const dly) const
 {
-    taskDelay(ms_to_tick(dly));
+    ::taskDelay(ms_to_tick(dly));
 }
 
 void Task::run(char const* const name, unsigned char const pri, int const ss)
 {
     if (ERROR == id) {
-	if (ERROR == (id = taskSpawn(const_cast<char*>(name), pri, VX_FP_TASK,
-				     ss, reinterpret_cast<FUNCPTR>(initTask),
-				     reinterpret_cast<int>(this), 0, 0, 0, 0,
-				     0, 0, 0, 0, 0)))
+	if (ERROR == (id = ::taskSpawn(const_cast<char*>(name), pri,VX_FP_TASK,
+				       ss, reinterpret_cast<FUNCPTR>(initTask),
+				       reinterpret_cast<int>(this), 0, 0, 0, 0,
+				       0, 0, 0, 0, 0)))
 	    throw std::runtime_error("couldn't start new task");
     } else
 	throw std::logic_error("task is already started");
@@ -64,19 +64,19 @@ int Task::priority() const
 {
     int tmp;
 
-    if (OK == taskPriorityGet(id, &tmp))
+    if (LIKELY(OK == ::taskPriorityGet(id, &tmp)))
 	return tmp;
     throw std::runtime_error("couldn't get task priority");
 }
 
 bool Task::isReady() const
 {
-    return TRUE == taskIsReady(id);
+    return TRUE == ::taskIsReady(id);
 }
 
 bool Task::isSuspended() const
 {
-    return TRUE == taskIsSuspended(id);
+    return TRUE == ::taskIsSuspended(id);
 }
 
 char const* Task::name() const
@@ -86,12 +86,12 @@ char const* Task::name() const
 
 void Task::suspend() const
 {
-    taskSuspend(id);
+    ::taskSuspend(id);
 }
 
 void Task::resume() const
 {
-    taskResume(id);
+    ::taskResume(id);
 }
 
 #ifndef NDEBUG

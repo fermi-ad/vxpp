@@ -8,8 +8,8 @@
 using namespace vwpp;
 
 Mutex::Mutex() :
-    SemaphoreBase(semMCreate(SEM_Q_PRIORITY | SEM_DELETE_SAFE |
-			     SEM_INVERSION_SAFE))
+    SemaphoreBase(::semMCreate(SEM_Q_PRIORITY | SEM_DELETE_SAFE |
+			       SEM_INVERSION_SAFE))
 {
 }
 
@@ -17,13 +17,13 @@ Mutex::Mutex() :
 // semaphore to the base class.
 
 CountingSemaphore::CountingSemaphore(int initialCount) :
-    SemaphoreBase(semCCreate(SEM_Q_PRIORITY, initialCount))
+    SemaphoreBase(::semCCreate(SEM_Q_PRIORITY, initialCount))
 {
 }
 
 void SemaphoreBase::acquire(int tmo)
 {
-    if (UNLIKELY(ERROR == semTake(res, ms_to_tick(tmo))))
+    if (UNLIKELY(ERROR == ::semTake(res, ms_to_tick(tmo))))
 	switch (errno) {
 	 case S_intLib_NOT_ISR_CALLABLE:
 	    throw std::logic_error("couldn't lock semaphore -- inside "
@@ -48,7 +48,7 @@ void SemaphoreBase::acquire(int tmo)
 // synchronization.
 
 Event::Event() :
-    id(semBCreate(SEM_Q_PRIORITY, SEM_EMPTY))
+    id(::semBCreate(SEM_Q_PRIORITY, SEM_EMPTY))
 {
     if (UNLIKELY(!id))
 	throw std::bad_alloc();
@@ -56,7 +56,7 @@ Event::Event() :
 
 Event::~Event() NOTHROW_IMPL
 {
-    semDelete(id);
+    ::semDelete(id);
 }
 
 // Wait for an event to occur. The caller will be blocked until it
@@ -66,7 +66,7 @@ Event::~Event() NOTHROW_IMPL
 
 bool Event::wait(int tmo)
 {
-    if (UNLIKELY(ERROR == semTake(id, ms_to_tick(tmo))))
+    if (UNLIKELY(ERROR == ::semTake(id, ms_to_tick(tmo))))
 	switch (errno) {
 	 case S_intLib_NOT_ISR_CALLABLE:
 	 case S_objLib_OBJ_TIMEOUT:
