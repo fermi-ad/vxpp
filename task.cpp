@@ -81,7 +81,7 @@ bool Task::isSuspended() const
 
 bool Task::isValid() const
 {
-    return OK == ::taskIsValid(id);
+    return OK == ::taskIdVerify(id);
 }
 
 char const* Task::name() const
