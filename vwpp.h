@@ -359,6 +359,7 @@ namespace vwpp {
 
 	bool isReady() const;
 	bool isSuspended() const;
+	bool isValid() const;
 	char const* name() const;
 
 	int priority() const;
