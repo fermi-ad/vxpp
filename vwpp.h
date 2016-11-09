@@ -3,8 +3,13 @@
 #ifndef __VWPP_H
 #define __VWPP_H
 
+#if VX_VERSION > 55
 #define LIKELY(x)	__builtin_expect(!!(x), 1)
 #define UNLIKELY(x)	__builtin_expect(!!(x), 0)
+#else
+#define LIKELY(x)	(x)
+#define UNLIKELY(x)	(x)
+#endif
 
 #include <string>
 #include <stdexcept>
