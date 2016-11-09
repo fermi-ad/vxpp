@@ -266,7 +266,8 @@ namespace vwpp {
 
 	    if (LIKELY(OK == ::taskPriorityGet(id, &oldValue))) {
 		int const nv = oldValue - Prio;
-		int const np = (nv < 0 ? 0 : (nv > 255 ? 255 : nv));
+		int const np =
+		    (UNLIKELY(nv < 0) ? 0 : (UNLIKELY(nv > 255) ? 255 : nv));
 
 		if (UNLIKELY(ERROR == ::taskPrioritySet(id, np)))
 		    throw std::runtime_error("couldn't set task priority");
