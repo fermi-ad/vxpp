@@ -141,7 +141,9 @@ namespace vwpp {
 
     class Mutex : public SemaphoreBase {
 	template <Mutex& mtx> friend class Lock;
+	template <Mutex& mtx> friend class Unlock;
 	template <class T, Mutex T::*PMtx> friend class PMLock;
+	template <class T, Mutex T::*PMtx> friend class PMUnlock;
 
      public:
 	template <Mutex& mtx>
@@ -149,6 +151,13 @@ namespace vwpp {
 	 public:
 	    explicit Lock(int tmo = -1) { mtx.acquire(tmo); }
 	    ~Lock() NOTHROW { mtx.release(); }
+	};
+
+	template <Mutex& mtx>
+	class Unlock : private Uncopyable, private NoHeap {
+	 public:
+	    explicit Unlock(Lock<mtx> const&) { mtx.release(); }
+	    ~Unlock() NOTHROW { mtx.acquire(-1); }
 	};
 
 	template <class T, Mutex T::*pmtx>
@@ -161,6 +170,18 @@ namespace vwpp {
 	    { mtx.acquire(tmo); }
 
 	    ~PMLock() NOTHROW { mtx.release(); }
+	};
+	
+	template <class T, Mutex T::*pmtx>
+	class PMUnlock : private Uncopyable, private NoHeap {
+	    Mutex& mtx;
+
+	 public:
+	    explicit PMUnlock(T* const obj, PMLock<T, pmtx> const&) :
+		mtx(obj->*pmtx)
+	    { mtx.release(); }
+
+	    ~PMUnlock() NOTHROW { mtx.acquire(-1); }
 	};
 
 	Mutex();
