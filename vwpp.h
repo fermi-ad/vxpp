@@ -314,6 +314,39 @@ namespace vwpp {
 	void wakeAll() NOTHROW { ::semFlush(id); }
     };
 
+    template <Mutex& mtx>
+    class CondVar : private Uncopyable, private NoHeap {
+	Event ev;
+
+     public:
+	bool wait(Mutex::Lock<mtx> const& lock, int tmo = -1)
+	{
+	    SchedLock sLock;
+	    Mutex::Unlock<mtx> uLock(lock);
+
+	    return ev.wait(tmo);
+	}
+
+	void signal() NOTHROW { ev.wakeOne(); }
+    };
+
+    template <class T, Mutex T::*pmtx>
+    class PMCondVar : private Uncopyable, private NoHeap {
+	Event ev;
+
+     public:
+	bool wait(T* const obj, Mutex::PMLock<T, pmtx> const& lock,
+		  int tmo = -1)
+	{
+	    SchedLock sLock;
+	    Mutex::PMUnlock<T, pmtx> uLock(obj, lock);
+
+	    return ev.wait(tmo);
+	}
+
+	void signal() NOTHROW { ev.wakeOne(); }
+    };
+
     // **** This section defines several classes that support the
     // **** message queue interface provided by VxWorks.
 
