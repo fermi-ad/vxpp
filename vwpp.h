@@ -310,6 +310,29 @@ namespace vwpp {
 	~AbsPriority() NOTHROW { ::taskPrioritySet(::taskIdSelf(), oldValue); }
     };
 
+    template <unsigned Prio>
+    class MinAbsPriority : private Uncopyable, private NoHeap {
+	int oldValue;
+
+     public:
+	MinAbsPriority()
+	{
+	    int const id = ::taskIdSelf();
+
+	    if (LIKELY(OK == ::taskPriorityGet(id, &oldValue))) {
+		if (oldValue > Prio)
+		    if (UNLIKELY(ERROR == ::taskPrioritySet(id, Prio)))
+			throw std::runtime_error("couldn't set task priority");
+	    } else
+		throw std::runtime_error("couldn't get current task priority");
+	}
+
+	~MinAbsPriority() NOTHROW
+	{
+	    ::taskPrioritySet(::taskIdSelf(), oldValue);
+	}
+    };
+
     template <int Prio>
     class RelPriority : private Uncopyable, private NoHeap {
 	int oldValue;
