@@ -24,6 +24,10 @@ Changes from 2.1:
       implementation and try it out. The Wiki has been updated with
       the API and examples.
 
+    - Added vwpp::MinAbsPriority<Prio>. This raises (lower numbers are
+      higher priority) the priority of the task to at least 'Prio'. If
+      the task is already at the priority or higher, nothing happens.
+
 System Preparation
 
     VWPP has been built for every supported target under VxWorks 6.4 and 6.7.
