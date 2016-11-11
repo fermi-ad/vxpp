@@ -10,7 +10,18 @@ Description
 
 Changes from 2.1:
 
-    - 
+    - Added vwpp::Task::isValid() which returns a boolean indicating
+      whether the VxWorks task associated with the object exists and,
+      is so, if it's not suspended. In other words, is the VxWorks
+      task healthy.
+
+    - Added vwpp::CondVar<>. The VxWorks native concurrency primitives
+      don't include support for condition variables (which the POSIX
+      interface does.) This version of the library provides an
+      implementation that doesn't require POSIX support in the
+      kernel. This class should be be considered experimental until
+      further notice. I'd appreciate others to review the
+      implementation and try it out.
 
 System Preparation
 
