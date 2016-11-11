@@ -327,7 +327,7 @@ namespace vwpp {
 	    return ev.wait(tmo);
 	}
 
-	void signal() NOTHROW { ev.wakeOne(); }
+	void signal(Mutex::Lock<mtx> const&) NOTHROW { ev.wakeOne(); }
     };
 
     template <class T, Mutex T::*pmtx>
@@ -344,7 +344,7 @@ namespace vwpp {
 	    return ev.wait(tmo);
 	}
 
-	void signal() NOTHROW { ev.wakeOne(); }
+	void signal(Mutex::PMLock<T, pmtx> const&) NOTHROW { ev.wakeOne(); }
     };
 
     // **** This section defines several classes that support the
