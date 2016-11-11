@@ -1,4 +1,4 @@
-Announcing v2.2 of VWPP
+Announcing v2.3 of VWPP
 
 Description
 
@@ -8,25 +8,9 @@ Description
 
         http://www-bd.fnal.gov/issues/wiki/Vwpp
 
-Changes from 2.1:
+Changes from 2.2:
 
-    - Added vwpp::Task::isValid() which returns a boolean indicating
-      whether the VxWorks task associated with the object exists and,
-      is so, if it's not suspended. In other words, is the VxWorks
-      task healthy.
-
-    - Added vwpp::CondVar<>. The VxWorks native concurrency primitives
-      don't include support for condition variables (which the POSIX
-      interface does.) This version of the library provides an
-      implementation that doesn't require POSIX support in the
-      kernel. This class should be be considered experimental until
-      further notice. I'd appreciate others to review the
-      implementation and try it out. The Wiki has been updated with
-      the API and examples.
-
-    - Added vwpp::MinAbsPriority<Prio>. This raises (lower numbers are
-      higher priority) the priority of the task to at least 'Prio'. If
-      the task is already at the priority or higher, nothing happens.
+    - 
 
 System Preparation
 
@@ -42,17 +26,17 @@ Location
 
     BSP        VxWorks    File
 
-    mv2401     6.4        vxworks_boot/v6.4/module/mv2401/vwpp-2.2.out
-    mv2434     6.4        vxworks_boot/v6.4/module/mv2434/vwpp-2.2.out
-    mv5500     6.4        vxworks_boot/v6.4/module/mv5500/vwpp-2.2.out
+    mv2401     6.4        vxworks_boot/v6.4/module/mv2401/vwpp-2.3.out
+    mv2434     6.4        vxworks_boot/v6.4/module/mv2434/vwpp-2.3.out
+    mv5500     6.4        vxworks_boot/v6.4/module/mv5500/vwpp-2.3.out
 
-    mv2401     6.7        vxworks_boot/v6.7/module/mv2401/vwpp-2.2.out
-    mv2434     6.7        vxworks_boot/v6.7/module/mv2434/vwpp-2.2.out
-    mv5500     6.7        vxworks_boot/v6.7/module/mv5500/vwpp-2.2.out
+    mv2401     6.7        vxworks_boot/v6.7/module/mv2401/vwpp-2.3.out
+    mv2434     6.7        vxworks_boot/v6.7/module/mv2434/vwpp-2.3.out
+    mv5500     6.7        vxworks_boot/v6.7/module/mv5500/vwpp-2.3.out
 
     Rather than load this module, one could also link their module with the
     static library. For instance, to build a module called demo.out, a Makefile
     might define the rule as:
 
-        demo.out : demo.o ${PRODUCTS_LIBDIR}/libvwpp-2.2.a
+        demo.out : demo.o ${PRODUCTS_LIBDIR}/libvwpp-2.3.a
 	        ${make-mod}
