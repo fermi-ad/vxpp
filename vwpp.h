@@ -3,6 +3,11 @@
 #ifndef __VWPP_H
 #define __VWPP_H
 
+// "Recent" GNU compilers support some built-in directives that affect
+// code generation. One built-in, __builtin_expect, assists the
+// compiler in choosing which branch in a conditional is more likely
+// to occur.
+
 #if VX_VERSION > 55
 #define LIKELY(x)	__builtin_expect(!!(x), 1)
 #define UNLIKELY(x)	__builtin_expect(!!(x), 0)
@@ -146,6 +151,11 @@ namespace vwpp {
 	template <class T, Mutex T::*PMtx> friend class PMUnlock;
 
      public:
+
+	// Mutex::Lock<> is used to hold ownership of a Mutex during
+	// the object's lifetime. The single parameter of the template
+	// is the mutex with which this lock is associated.
+
 	template <Mutex& mtx>
 	class Lock : private Uncopyable, private NoHeap {
 	 public:
@@ -153,12 +163,24 @@ namespace vwpp {
 	    ~Lock() NOTHROW { mtx.release(); }
 	};
 
+	// Mutex::Unlock<> is used to release ownership of a Mutex
+	// during the object's lifetime. The single parameter of the
+	// template is the mutex with which this lock is associated.
+	// Since you can't release an un-owned mutex, the constructor
+	// requires you to prove you have a lock on the mutex, proving
+	// at compile-time that you already own it.
+
 	template <Mutex& mtx>
 	class Unlock : private Uncopyable, private NoHeap {
 	 public:
 	    explicit Unlock(Lock<mtx> const&) { mtx.release(); }
 	    ~Unlock() NOTHROW { mtx.acquire(-1); }
 	};
+
+	// Mutex::PMLock<> is used to hold ownership of a Mutex
+	// residing in an object during the lock object's lifetime.
+	// The first template parameter is the class holding the mutex
+	// and the second selects the mutex field in the class.
 
 	template <class T, Mutex T::*pmtx>
 	class PMLock : private Uncopyable, private NoHeap {
@@ -171,6 +193,14 @@ namespace vwpp {
 
 	    ~PMLock() NOTHROW { mtx.release(); }
 	};
+
+	// Mutex::PMUnlock<> is used to release ownership of a Mutex
+	// residing in an object during the unlock object's lifetime.
+	// The first template parameter is the class holding the mutex
+	// and the second parameter selects the mutex field in the
+	// class. Since you can't release an un-owned mutex, the
+	// constructor requires you to prove you have a lock on the
+	// mutex, proving at compile-time that you already own it.
 	
 	template <class T, Mutex T::*pmtx>
 	class PMUnlock : private Uncopyable, private NoHeap {
@@ -186,6 +216,10 @@ namespace vwpp {
 
 	Mutex();
     };
+
+    // Experimental class that associates a variable with a mutex.
+    // Access to the variable is only allowed if a lock is provided
+    // proving, at compile-time, you own the required mutex.
 
     template <class T, Mutex& mtx>
     class MVar : private Uncopyable, private NoHeap {
@@ -314,6 +348,9 @@ namespace vwpp {
 	void wakeAll() NOTHROW { ::semFlush(id); }
     };
 
+    // Non-POSIX implementation of conditional variables. This version
+    // works with global mutexes.
+
     template <Mutex& mtx>
     class CondVar : private Uncopyable, private NoHeap {
 	Event ev;
@@ -329,6 +366,9 @@ namespace vwpp {
 
 	void signal(Mutex::Lock<mtx> const&) NOTHROW { ev.wakeOne(); }
     };
+
+    // Non-POSIX implementation of conditional variables. This version
+    // works inside classes.
 
     template <class T, Mutex T::*pmtx>
     class PMCondVar : private Uncopyable, private NoHeap {
