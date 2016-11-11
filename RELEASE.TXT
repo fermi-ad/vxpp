@@ -21,7 +21,8 @@ Changes from 2.1:
       implementation that doesn't require POSIX support in the
       kernel. This class should be be considered experimental until
       further notice. I'd appreciate others to review the
-      implementation and try it out.
+      implementation and try it out. The Wiki has been updated with
+      the API and examples.
 
 System Preparation
 
