@@ -69,7 +69,7 @@ struct msg_q;
 
 extern "C" {
     int intLock() NOTHROW;
-    int intUnlock(int) NOTHROW;
+    void intUnlock(int) NOTHROW;
 }
 
 #endif
