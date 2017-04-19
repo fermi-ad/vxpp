@@ -10,7 +10,9 @@ Description
 
 Changes from 2.2:
 
-    - 
+    - Define two macros, MEMORY_SYNC and INSTRUCTION_SYNC, which
+      provide an ordering barrier for load/store operations and
+      instruction execution, respectively.
 
 System Preparation
 

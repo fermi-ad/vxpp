@@ -34,6 +34,19 @@
 #define NOTHROW_IMPL	throw()
 #endif
 
+// These macros emit assembly instructions which implement "barriers"
+// used to force ordering.
+//
+// MEMORY_SYNC prevents the processor from proceeding until all
+// previous load and store operations complete.
+//
+// INSTRUCTION_SYNC prevents the processor from proceeding until all
+// previous instructions have completed their execution (which
+// includes and load or store operations.)
+
+#define	MEMORY_SYNC		__asm__ volatile (" eieio")
+#define	INSTRUCTION_SYNC	__asm__ volatile (" sync")
+
 // These forward-declared structures and functions are found in
 // <semLib.h>. We don't want to require users of this library to
 // include VxWorks' headers, if they don't need to.
