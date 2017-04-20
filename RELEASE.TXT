@@ -6,13 +6,14 @@ Description
     and exception-safe objects. These classes manage resources using modern C++
     idioms. This library is documented at
 
-        http://www-bd.fnal.gov/issues/wiki/Vwpp
+        https://cdcvs.fnal.gov/redmine/projects/vxpp/wiki
 
 Changes from 2.2:
 
-    - Define two macros, MEMORY_SYNC and INSTRUCTION_SYNC, which
-      provide an ordering barrier for load/store operations and
-      instruction execution, respectively.
+    - Define two macros, MEMORY_SYNC and INSTRUCTION_SYNC, which provide an
+      ordering barrier for load/store operations and instruction execution,
+      respectively. The Wiki documentation has a section which describes these
+      macros.
 
 System Preparation
 
