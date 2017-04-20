@@ -1,6 +1,6 @@
 # $Id: Makefile,v 1.11 2015/01/07 15:31:56 neswold Exp $
 
-VID = 2.3
+VID = 2.4
 PRODUCT = 1
 
 SUPPORTED_VERSIONS = 64 67
