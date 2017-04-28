@@ -16,7 +16,6 @@
 #define UNLIKELY(x)	(x)
 #endif
 
-#include <string>
 #include <stdexcept>
 
 // The throw() specification should actually produce *more* code
