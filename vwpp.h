@@ -142,7 +142,7 @@ namespace vwpp {
 	template <Mutex& mtx>
 	class Unlock : private Uncopyable, private NoHeap {
 	 public:
-	    explicit Unlock(Lock<mtx> const&) { mtx.release(); }
+	    explicit Unlock(Lock<mtx>&) { mtx.release(); }
 	    ~Unlock() NOTHROW { mtx.acquire(-1); }
 	};
 
@@ -170,13 +170,13 @@ namespace vwpp {
 	// class. Since you can't release an un-owned mutex, the
 	// constructor requires you to prove you have a lock on the
 	// mutex, proving at compile-time that you already own it.
-	
+
 	template <class T, Mutex T::*pmtx>
 	class PMUnlock : private Uncopyable, private NoHeap {
 	    Mutex& mtx;
 
 	 public:
-	    explicit PMUnlock(T* const obj, PMLock<T, pmtx> const&) :
+	    explicit PMUnlock(T* const obj, PMLock<T, pmtx>&) :
 		mtx(obj->*pmtx)
 	    { mtx.release(); }
 
@@ -348,7 +348,7 @@ namespace vwpp {
 	Event ev;
 
      public:
-	bool wait(Mutex::Lock<mtx> const& lock, int tmo = -1)
+	bool wait(Mutex::Lock<mtx>& lock, int tmo = -1)
 	{
 	    SchedLock sLock;
 	    Mutex::Unlock<mtx> uLock(lock);
@@ -367,7 +367,7 @@ namespace vwpp {
 	Event ev;
 
      public:
-	bool wait(T* const obj, Mutex::PMLock<T, pmtx> const& lock,
+	bool wait(T* const obj, Mutex::PMLock<T, pmtx>& lock,
 		  int tmo = -1)
 	{
 	    SchedLock sLock;
