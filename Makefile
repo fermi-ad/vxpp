@@ -1,15 +1,20 @@
-# $Id: Makefile,v 1.11 2015/01/07 15:31:56 neswold Exp $
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# NOTE: When you change the VID, you must change the version number
+#       used in vwpp.h. Search for __BUILDING_VWPP.
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 VID = 2.4
 PRODUCT = 1
 
 SUPPORTED_VERSIONS = 64 67
 
-HEADER_TARGETS = vwpp.h
+HEADER_TARGETS = vwpp.h vwpp-types.h
 MOD_TARGETS = vwpp.out
 LIB_TARGETS = libvwpp.a
 
 include $(PRODUCTS_INCDIR)frontend-latest.mk
+
+ADDED_C++FLAGS = -D__BUILDING_VWPP
 
 OBJS = sem.o queue.o task.o util.o
 

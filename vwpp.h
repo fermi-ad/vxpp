@@ -1,36 +1,21 @@
-// $Id: vwpp.h,v 1.24 2015/05/21 18:28:45 neswold Exp $
-
 #ifndef __VWPP_H
 #define __VWPP_H
 
-// "Recent" GNU compilers support some built-in directives that affect
-// code generation. One built-in, __builtin_expect, assists the
-// compiler in choosing which branch in a conditional is more likely
-// to occur.
+// With our build environment, we have an awkward situation when our
+// project's header files include each other. While building the
+// project, we want to use the headers in the local directory because
+// we can't guarantee the most up-to-date version is in the install
+// area. The project's Makefile defines __BUILDING_VWPP so we know
+// when it's being built and, therefore, can include the local version
+// of the header.
+//
+// NOTE: The version number for vwpp-types.h needs to change when the
+// project's version changes so the correct header gets used!
 
-#if VX_VERSION > 55
-#define LIKELY(x)	__builtin_expect(!!(x), 1)
-#define UNLIKELY(x)	__builtin_expect(!!(x), 0)
+#ifdef __BUILDING_VWPP
+#include "./vwpp-types.h"
 #else
-#define LIKELY(x)	(x)
-#define UNLIKELY(x)	(x)
-#endif
-
-#include <stdexcept>
-
-// The throw() specification should actually produce *more* code
-// (because the compiler needs to wrap the function with a try/catch
-// to make sure it doesn't throw anything), but the compilers included
-// with VxWorks 6.1, and earlier, seem to produce better code.
-// Compilers after 6.1 support the GNU attribute which guarantees to
-// produce tight code.
-
-#if VX_VERSION > 61
-#define NOTHROW		__attribute__((nothrow))
-#define NOTHROW_IMPL
-#else
-#define NOTHROW		throw()
-#define NOTHROW_IMPL	throw()
+#include <vwpp-types-2.4.h>
 #endif
 
 // These macros emit assembly instructions which implement "barriers"
@@ -107,34 +92,6 @@ extern "C" {
 // All identifiers of this module are located in the vwpp name space.
 
 namespace vwpp {
-
-    // Any class derived from Uncopyable will cause a compile-time
-    // error if the code tries to copy an instance the class. Even
-    // though this is only used as a base class, we aren't making the
-    // destructor virtual. This is intentional since no valid code
-    // will be upcasting to an Uncopyable. By keeping it non-virtual,
-    // these classes become more lightweight and have more
-    // opportunities of being inlined.
-
-    class Uncopyable {
-	Uncopyable(Uncopyable const&);
-	Uncopyable& operator=(Uncopyable const&);
-
-     public:
-	Uncopyable() NOTHROW {}
-	~Uncopyable() NOTHROW {}
-    };
-
-    // A class derived from NoHeap can never exist on the heap.
-
-    class NoHeap {
-	void* operator new(size_t);
-	void* operator new[](size_t);
-
-     public:
-	NoHeap() NOTHROW {}
-	~NoHeap() NOTHROW {}
-    };
 
     // Base class for semaphore-like resources.
 
