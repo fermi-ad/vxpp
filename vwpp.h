@@ -1,4 +1,4 @@
-#ifndef __VWPP_H
+#if !defined(__VWPP_H)
 #define __VWPP_H
 
 // With our build environment, we have an awkward situation when our
@@ -11,6 +11,8 @@
 //
 // NOTE: The version number for vwpp-types.h needs to change when the
 // project's version changes so the correct header gets used!
+
+#define __VWPP_VERSION	0x204
 
 #ifdef __BUILDING_VWPP
 #include "./vwpp-types.h"
@@ -461,6 +463,8 @@ namespace vwpp {
     int ms_to_tick(int);
 };
 
+#elif __VWPP_VERSION != 0x204
+#error "Already included different vwpp.h"
 #endif
 
 // Local Variables:

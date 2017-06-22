@@ -1,5 +1,7 @@
-#ifndef __VWPP_TYPES_H
+#if !defined(__VWPP_TYPES_H)
 #define __VWPP_TYPES_H
+
+#define __VWPP_VERSION	0x204
 
 // "Recent" GNU compilers support some built-in directives that affect
 // code generation. One built-in, __builtin_expect, assists the
@@ -62,6 +64,8 @@ namespace vwpp {
     };
 };
 
+#elif __VWPP_VERSION != 0x204
+#error "Already included different vwpp-types.h"
 #endif
 
 // Local Variables:
