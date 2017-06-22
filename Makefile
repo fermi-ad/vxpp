@@ -18,6 +18,8 @@ ADDED_C++FLAGS = -D__BUILDING_VWPP
 
 OBJS = sem.o queue.o task.o util.o
 
+${OBJS} : ${HEADER_TARGETS}
+
 vwpp.out : ${OBJS}
 	${make-mod-munch}
 
