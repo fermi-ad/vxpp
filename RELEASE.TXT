@@ -10,12 +10,6 @@ Description
 
 Changes from 2.3:
 
-    - Moved non-concurrency types to a new header: vwpp_types.h
-
-      vwpp.h includes this new header automatically, so code using this
-      library doesn't need to be modified. It does allow, however, someone
-      to use the useful, non-concurrency types without pulling in rest.
-
     - Added "mismatched version" protection to the headers. This generates
       a compile-time error if different versions of the headers are included
       in a module (through nested #include directives.)
@@ -23,6 +17,14 @@ Changes from 2.3:
     - The "Unlock" classes now require a non-const Lock. Functions that
       specify a const Lock as a parameter are now promising they won't
       unlock a Lock (because now they can't.)
+
+    - Added an experimental interface for accessing VME A16 memory. Once the
+      API has matured, equivalents will be made for A24, A32 and PCI memory.
+      This API:
+
+	  * Enforces proper serialization to memory *at compile time*.
+	  * Range-checks access to memory *at compile time*.
+	  * Each access, ideally, reduces to one or two assembly instructions.
 
 System Preparation
 

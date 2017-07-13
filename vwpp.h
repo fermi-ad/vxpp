@@ -467,6 +467,13 @@ namespace vwpp {
     // Other prototypes...
 
     int ms_to_tick(int);
+
+#ifdef __BUILDING_VWPP
+#include "./vwpp_memory.h"
+#else
+#include <vwpp_memory-2.4.h>
+#endif
+
 };
 
 #elif __VWPP_VERSION != 0x204

@@ -8,7 +8,7 @@ PRODUCT = 1
 
 SUPPORTED_VERSIONS = 64 67
 
-HEADER_TARGETS = vwpp.h vwpp_types.h
+HEADER_TARGETS = vwpp.h vwpp_types.h vwpp_memory.h
 MOD_TARGETS = vwpp.out
 LIB_TARGETS = libvwpp.a
 
