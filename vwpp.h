@@ -12,7 +12,13 @@
 // NOTE: The version number for vwpp_types.h needs to change when the
 // project's version changes so the correct header gets used!
 
-#define __VWPP_VERSION	0x204
+#if !defined(__VWPP_VERSION)
+#define __VWPP_VERSION  0x204
+#endif
+
+#if __VWPP_VERSION != 0x204
+#error "Mismatched VWPP headers."
+#endif
 
 #ifdef __BUILDING_VWPP
 #include "./vwpp_types.h"

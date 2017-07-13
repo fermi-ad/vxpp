@@ -1,7 +1,13 @@
 #if !defined(__VWPP_TYPES_H)
 #define __VWPP_TYPES_H
 
-#define __VWPP_VERSION	0x204
+#if !defined(__VWPP_VERSION)
+#define __VWPP_VERSION  0x204
+#endif
+
+#if __VWPP_VERSION != 0x204
+#error "Mismatched VWPP headers."
+#endif
 
 // "Recent" GNU compilers support some built-in directives that affect
 // code generation. One built-in, __builtin_expect, assists the

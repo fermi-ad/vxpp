@@ -1,6 +1,6 @@
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # NOTE: When you change the VID, you must change the version number
-#       used in vwpp.h. Search for __BUILDING_VWPP.
+#       used in all the header files.
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 VID = 2.4
