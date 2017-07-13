@@ -65,7 +65,7 @@ namespace vwpp {
 };
 
 #elif __VWPP_VERSION != 0x204
-#error "Already included different vwpp-types.h"
+#error "Already included different vwpp_types.h"
 #endif
 
 // Local Variables:

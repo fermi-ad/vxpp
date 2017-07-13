@@ -10,7 +10,7 @@ Description
 
 Changes from 2.3:
 
-    - Moved non-concurrency types to a new header: vwpp-types.h
+    - Moved non-concurrency types to a new header: vwpp_types.h
 
       vwpp.h includes this new header automatically, so code using this
       library doesn't need to be modified. It does allow, however, someone

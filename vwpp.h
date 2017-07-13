@@ -9,15 +9,15 @@
 // when it's being built and, therefore, can include the local version
 // of the header.
 //
-// NOTE: The version number for vwpp-types.h needs to change when the
+// NOTE: The version number for vwpp_types.h needs to change when the
 // project's version changes so the correct header gets used!
 
 #define __VWPP_VERSION	0x204
 
 #ifdef __BUILDING_VWPP
-#include "./vwpp-types.h"
+#include "./vwpp_types.h"
 #else
-#include <vwpp-types-2.4.h>
+#include <vwpp_types-2.4.h>
 #endif
 
 // These macros emit assembly instructions which implement "barriers"
