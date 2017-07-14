@@ -268,6 +268,48 @@ namespace vwpp {
 	~ProtLock() NOTHROW { ::taskUnsafe(); }
     };
 
+    // This template allows us to detect serialization locks.
+
+    template <typename T>
+    struct DetermineLock {
+    };
+
+    template <>
+    template <Mutex& mtx>
+    struct DetermineLock<Mutex::Lock<mtx> > {
+	typedef Mutex::Lock<mtx> type;
+    };
+
+    template <>
+    template <class T, Mutex T::*pmtx>
+    struct DetermineLock<Mutex::PMLock<T, pmtx> > {
+	typedef Mutex::PMLock<T, pmtx> type;
+    };
+
+    template <>
+    template <CountingSemaphore& sem>
+    struct DetermineLock<CountingSemaphore::Lock<sem> > {
+	typedef CountingSemaphore::Lock<sem> type;
+    };
+
+    template <>
+    struct DetermineLock<IntLock> {
+	typedef IntLock type;
+    };
+
+    template <>
+    struct DetermineLock<SchedLock> {
+	typedef SchedLock type;
+    };
+
+    template <>
+    struct DetermineLock<ProtLock> {
+	typedef ProtLock type;
+    };
+
+    // During this object's lifetime, the priority of the task is
+    // changed to 'Prio'.
+
     template <unsigned Prio>
     class AbsPriority : private Uncopyable, private NoHeap {
 	int oldValue;
