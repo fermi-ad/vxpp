@@ -124,8 +124,8 @@ namespace vwpp {
     class Mutex : public SemaphoreBase {
 	template <Mutex& mtx> friend class Lock;
 	template <Mutex& mtx> friend class Unlock;
-	template <class T, Mutex T::*PMtx> friend class PMLock;
-	template <class T, Mutex T::*PMtx> friend class PMUnlock;
+	template <typename T, Mutex T::*PMtx> friend class PMLock;
+	template <typename T, Mutex T::*PMtx> friend class PMUnlock;
 
      public:
 
@@ -159,7 +159,7 @@ namespace vwpp {
 	// The first template parameter is the class holding the mutex
 	// and the second selects the mutex field in the class.
 
-	template <class T, Mutex T::*pmtx>
+	template <typename T, Mutex T::*pmtx>
 	class PMLock : private Uncopyable, private NoHeap {
 	    Mutex& mtx;
 
@@ -179,7 +179,7 @@ namespace vwpp {
 	// constructor requires you to prove you have a lock on the
 	// mutex, proving at compile-time that you already own it.
 
-	template <class T, Mutex T::*pmtx>
+	template <typename T, Mutex T::*pmtx>
 	class PMUnlock : private Uncopyable, private NoHeap {
 	    Mutex& mtx;
 
@@ -198,7 +198,7 @@ namespace vwpp {
     // Access to the variable is only allowed if a lock is provided
     // proving, at compile-time, you own the required mutex.
 
-    template <class T, Mutex& mtx>
+    template <typename T, Mutex& mtx>
     class MVar : private Uncopyable, private NoHeap {
 	T value;
 
@@ -224,7 +224,7 @@ namespace vwpp {
 	    ~Lock() NOTHROW { sem.release(); }
 	};
 
-	template <class T, CountingSemaphore T::*PSem>
+	template <typename T, CountingSemaphore T::*PSem>
 	class PMLock : private Uncopyable, private NoHeap {
 	    CountingSemaphore& sem;
 
@@ -281,7 +281,7 @@ namespace vwpp {
     };
 
     template <>
-    template <class T, Mutex T::*pmtx>
+    template <typename T, Mutex T::*pmtx>
     struct DetermineLock<Mutex::PMLock<T, pmtx> > {
 	typedef Mutex::PMLock<T, pmtx> type;
     };
@@ -412,7 +412,7 @@ namespace vwpp {
     // Non-POSIX implementation of conditional variables. This version
     // works inside classes.
 
-    template <class T, Mutex T::*pmtx>
+    template <typename T, Mutex T::*pmtx>
     class PMCondVar : private Uncopyable, private NoHeap {
 	Event ev;
 
@@ -452,7 +452,7 @@ namespace vwpp {
     // This template version of the Queue is what applications should
     // use. It allows better type-safety than the QueueBase.
 
-    template <class T, size_t nn>
+    template <typename T, size_t nn>
     class Queue : public QueueBase {
      public:
 	Queue() : QueueBase(sizeof(T), nn) {}
