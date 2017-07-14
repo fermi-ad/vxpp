@@ -15,7 +15,7 @@ namespace vwpp {
     //
     //  * Serialized access to A16 space
 
-    namespace VME {
+    namespace vme {
 
 	char* calcA16BaseAddr(uint32_t);
 
@@ -24,7 +24,7 @@ namespace vwpp {
 	// range-checks all accesses so they don't exceed the
 	// hardware's span.
 
-	template <typename T, Mutex T::*mutex, size_t size>
+	template <typename LockType, size_t size>
 	class A16 {
 	    char* const baseAddr;
 
@@ -46,7 +46,7 @@ namespace vwpp {
 
 	    void* getBaseAddr() const { return baseAddr; }
 
-	    typedef Mutex::PMLock<T, mutex> Lock;
+	    typedef typename DetermineLock<LockType>::type Lock;
 
 	    template <typename RT, size_t offset>
 	    struct Reg {
