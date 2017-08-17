@@ -34,7 +34,7 @@
 //
 // INSTRUCTION_SYNC prevents the processor from proceeding until all
 // previous instructions have completed their execution (which
-// includes and load or store operations.)
+// includes load or store operations.)
 
 #define	MEMORY_SYNC		__asm__ volatile (" eieio")
 #define	INSTRUCTION_SYNC	__asm__ volatile (" sync")
