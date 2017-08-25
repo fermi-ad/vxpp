@@ -14,7 +14,7 @@ LIB_TARGETS = libvwpp.a
 
 include $(PRODUCTS_INCDIR)frontend-latest.mk
 
-ADDED_C++FLAGS = -D__BUILDING_VWPP
+ADDED_C++FLAGS += -D__BUILDING_VWPP
 
 OBJS = sem.o queue.o task.o util.o
 
