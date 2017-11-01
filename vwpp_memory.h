@@ -62,7 +62,7 @@ namespace vwpp {
 		if (offset + sizeof(RT) < size)
 		    return *reinterpret_cast<RT volatile*>(baseAddr + offset);
 		else
-		    throw std::runtime_error("bad offset");
+		    throw std::range_error("reading outside register bank");
 	    }
 
 	    template <typename RT, size_t offset>
@@ -79,7 +79,7 @@ namespace vwpp {
 		if (offset + sizeof(RT) < size)
 		    *reinterpret_cast<RT volatile*>(baseAddr + offset) = v;
 		else
-		    throw std::runtime_error("bad offset");
+		    throw std::range_error("writing outside register bank");
 	    }
 	};
     };
