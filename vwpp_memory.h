@@ -56,12 +56,30 @@ namespace vwpp {
 		return *reinterpret_cast<RT volatile*>(baseAddr + offset);
 	    }
 
+	    template <typename RT>
+	    RT get(Lock const&, size_t const offset) const
+	    {
+		if (offset + sizeof(RT) < size)
+		    return *reinterpret_cast<RT volatile*>(baseAddr + offset);
+		else
+		    throw std::runtime_error("bad offset");
+	    }
+
 	    template <typename RT, size_t offset>
 	    void set(Lock const&, RT const v)
 	    {
 		typedef typename Accessible<RT, offset>::allowed type;
 
 		*reinterpret_cast<RT volatile*>(baseAddr + offset) = v;
+	    }
+
+	    template <typename RT>
+	    void set(Lock const&, size_t const offset, RT const v)
+	    {
+		if (offset + sizeof(RT) < size)
+		    *reinterpret_cast<RT volatile*>(baseAddr + offset) = v;
+		else
+		    throw std::runtime_error("bad offset");
 	    }
 	};
     };
