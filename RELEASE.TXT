@@ -1,4 +1,4 @@
-Announcing v2.4 of VWPP
+Announcing v2.5 of VWPP
 
 Description
 
@@ -8,24 +8,9 @@ Description
 
         https://cdcvs.fnal.gov/redmine/projects/vxpp/wiki
 
-Changes from 2.3:
+Changes from 2.4:
 
-    - Added "mismatched version" protection to the headers. This generates
-      a compile-time error if different versions of the headers are included
-      in a module (through nested #include directives.)
-
-    - The "Unlock" classes now require a non-const Lock. Functions that
-      specify a const Lock as a parameter are now promising they won't
-      unlock a Lock (because now they can't.)
-
-    - Added an experimental interface for accessing VME A16 memory. Once the
-      API has matured, equivalents will be made for A24, A32 and PCI memory.
-      This API:
-
-	  * Enforces proper serialization to memory *at compile time*.
-	  * Range-checks access to memory *at compile time*.
-	  * Each access, ideally, reduces to one or two assembly instructions.
-	  * Is documented in the project's Wiki.
+    - 
 
 System Preparation
 
@@ -41,17 +26,17 @@ Location
 
     BSP        VxWorks    File
 
-    mv2401     6.4        vxworks_boot/v6.4/module/mv2401/vwpp-2.4.out
-    mv2434     6.4        vxworks_boot/v6.4/module/mv2434/vwpp-2.4.out
-    mv5500     6.4        vxworks_boot/v6.4/module/mv5500/vwpp-2.4.out
+    mv2401     6.4        vxworks_boot/v6.4/module/mv2401/vwpp-2.5.out
+    mv2434     6.4        vxworks_boot/v6.4/module/mv2434/vwpp-2.5.out
+    mv5500     6.4        vxworks_boot/v6.4/module/mv5500/vwpp-2.5.out
 
-    mv2401     6.7        vxworks_boot/v6.7/module/mv2401/vwpp-2.4.out
-    mv2434     6.7        vxworks_boot/v6.7/module/mv2434/vwpp-2.4.out
-    mv5500     6.7        vxworks_boot/v6.7/module/mv5500/vwpp-2.4.out
+    mv2401     6.7        vxworks_boot/v6.7/module/mv2401/vwpp-2.5.out
+    mv2434     6.7        vxworks_boot/v6.7/module/mv2434/vwpp-2.5.out
+    mv5500     6.7        vxworks_boot/v6.7/module/mv5500/vwpp-2.5.out
 
     Rather than load this module, one could also link their module with the
     static library. For instance, to build a module called demo.out, a Makefile
     might define the rule as:
 
-        demo.out : demo.o ${PRODUCTS_LIBDIR}/libvwpp-2.4.a
+        demo.out : demo.o ${PRODUCTS_LIBDIR}/libvwpp-2.5.a
 	        ${make-mod}

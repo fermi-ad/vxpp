@@ -2,10 +2,10 @@
 #define __VWPP_TYPES_H
 
 #if !defined(__VWPP_VERSION)
-#define __VWPP_VERSION  0x204
+#define __VWPP_VERSION  0x205
 #endif
 
-#if __VWPP_VERSION != 0x204
+#if __VWPP_VERSION != 0x205
 #error "Mismatched VWPP headers."
 #endif
 
@@ -70,7 +70,7 @@ namespace vwpp {
     };
 };
 
-#elif __VWPP_VERSION != 0x204
+#elif __VWPP_VERSION != 0x205
 #error "Already included different vwpp_types.h"
 #endif
 

@@ -3,7 +3,7 @@
 #       used in all the header files.
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-VID = 2.4
+VID = 2.5
 PRODUCT = 1
 
 SUPPORTED_VERSIONS = 64 67
