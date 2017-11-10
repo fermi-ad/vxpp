@@ -25,6 +25,7 @@ Changes from 2.3:
 	  * Enforces proper serialization to memory *at compile time*.
 	  * Range-checks access to memory *at compile time*.
 	  * Each access, ideally, reduces to one or two assembly instructions.
+	  * Is documented in the project's Wiki.
 
 System Preparation
 
