@@ -26,10 +26,12 @@ Location
 
     BSP        VxWorks    File
 
+    mv2400     6.4        vxworks_boot/v6.4/module/mv2400/vwpp-2.5.out
     mv2401     6.4        vxworks_boot/v6.4/module/mv2401/vwpp-2.5.out
     mv2434     6.4        vxworks_boot/v6.4/module/mv2434/vwpp-2.5.out
     mv5500     6.4        vxworks_boot/v6.4/module/mv5500/vwpp-2.5.out
 
+    mv2400     6.7        vxworks_boot/v6.7/module/mv2400/vwpp-2.5.out
     mv2401     6.7        vxworks_boot/v6.7/module/mv2401/vwpp-2.5.out
     mv2434     6.7        vxworks_boot/v6.7/module/mv2434/vwpp-2.5.out
     mv5500     6.7        vxworks_boot/v6.7/module/mv5500/vwpp-2.5.out
