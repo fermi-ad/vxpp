@@ -114,7 +114,11 @@ namespace vwpp {
 	explicit SemaphoreBase(semaphore* const tmp) : res(tmp) {}
 
      public:
-	virtual ~SemaphoreBase() NOTHROW { ::semDelete(res); }
+	virtual ~SemaphoreBase() NOTHROW
+	{
+	    ::semTake(res, WAIT_FOREVER);
+	    ::semDelete(res);
+	}
     };
 
     // Mutexes are mutual exclusion locks. They can be locked multiple
