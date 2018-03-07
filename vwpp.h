@@ -36,8 +36,10 @@
 // previous instructions have completed their execution (which
 // includes load or store operations.)
 
+#if defined(PPC603) || defined(PPC604) || defined(PPC750) || defined(PPC7400)
 #define	MEMORY_SYNC		__asm__ volatile (" eieio")
 #define	INSTRUCTION_SYNC	__asm__ volatile (" sync")
+#endif
 
 // These forward-declared structures and functions are found in
 // <semLib.h>. We don't want to require users of this library to
