@@ -103,6 +103,11 @@ extern "C" {
 
 namespace vwpp {
 
+    class timeout_error : public std::runtime_error {
+     public:
+	timeout_error() : std::runtime_error("timeout obtaining resource") {}
+    };
+
     // Base class for semaphore-like resources.
 
     class SemaphoreBase : private Uncopyable, private NoHeap {

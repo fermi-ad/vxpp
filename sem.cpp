@@ -36,7 +36,7 @@ void SemaphoreBase::acquire(int tmo)
 	    throw std::logic_error("couldn't lock semaphore -- unavailable");
 
 	 case S_objLib_OBJ_TIMEOUT:
-	    throw std::runtime_error("couldn't lock semaphore -- timeout");
+	    throw timeout_error();
 
 	 default:
 	    throw std::logic_error("couldn't lock semaphore -- unknown "
