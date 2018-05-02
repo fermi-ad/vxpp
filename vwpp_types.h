@@ -59,10 +59,14 @@ namespace vwpp {
     };
 
     // A class derived from NoHeap can never exist on the heap.
+    // Placement 'new' operators are also restricted because they make
+    // object lifetime difficult to track.
 
     class NoHeap {
 	void* operator new(size_t);
+	void* operator new(size_t, void*) NOTHROW;
 	void* operator new[](size_t);
+	void* operator new[](size_t, void*);
 
     public:
 	NoHeap() NOTHROW {}
