@@ -19,28 +19,33 @@ namespace vwpp {
 
 	char* calcA16BaseAddr(uint32_t);
 
-	// This class controls access to VME A16 space. It requires a
-	// mutex to be held during access to the hardware and it
-	// range-checks all accesses -- at compile time -- so they
-	// don't exceed the hardware's span.
+	// This is the generalized template of a class that controls
+	// access to VME A16 space. It is given as a forward
+	// declaration and gets defined later in the header.
 
 	template <typename LockType, size_t size>
-	class A16 {
+	class A16;
+
+	// This is a partially-specialized version where the lock type
+	// is 'void'. This changes the API to not include the lock
+	// parameter and requires an implementer to do serialization
+	// at a higher level.
+
+	template <size_t size>
+	class A16<void, size> {
 	    char volatile* const baseAddr;
 
-	    // This template expands to a type that defines 'type'
+	    // This template expands to a type that defines 'allowed'
 	    // only if an offset into a VME::A16 register bank is
 	    // accessible.
 
-	    template <typename RT, size_t offset,
-		      bool = (offset % sizeof(RT) == 0 &&
-			      offset + sizeof(RT) <= size)>
+	    template <typename RegType, size_t n, size_t offset,
+		      bool = (offset % sizeof(RegType) == 0 &&
+			      offset + sizeof(RegType) * n <= size)>
 	    struct Accessible { typedef Accessible allowed; };
 
-	    template <typename RT, size_t offset>
-	    struct Accessible<RT, offset, false> {};
-
-	    typedef typename DetermineLock<LockType>::type Lock;
+	    template <typename RegType, size_t n, size_t offset>
+	    struct Accessible<RegType, n, offset, false> {};
 
 	 public:
 	    explicit A16(uint16_t const a16_offset) :
@@ -49,15 +54,29 @@ namespace vwpp {
 	    void* getBaseAddr() const { return baseAddr; }
 
 	    template <typename RT, size_t offset>
-	    RT get(Lock const&) const
+	    RT get() const
 	    {
-		typedef typename Accessible<RT, offset>::allowed type;
+		typedef typename Accessible<RT, 1, offset>::allowed type;
 
 		return *reinterpret_cast<RT volatile*>(baseAddr + offset);
 	    }
 
+	    template <typename RT, size_t N, size_t offset>
+	    RT get(size_t const index) const
+	    {
+		typedef typename Accessible<RT, N, offset>::allowed type;
+
+		if (index < N) {
+		    RT volatile (&tmp)[N] =
+			reinterpret_cast<RT volatile*>(baseAddr + offset);
+
+		    return tmp[index];
+		} else
+		    throw std::range_error("out of bounds array access");
+	    }
+
 	    template <typename RT>
-	    RT get(Lock const&, size_t const offset) const
+	    RT get(size_t const offset) const
 	    {
 		if (offset + sizeof(RT) < size)
 		    return *reinterpret_cast<RT volatile*>(baseAddr + offset);
@@ -66,21 +85,60 @@ namespace vwpp {
 	    }
 
 	    template <typename RT, size_t offset>
-	    void set(Lock const&, RT const v)
+	    void set(RT const v)
 	    {
-		typedef typename Accessible<RT, offset>::allowed type;
+		typedef typename Accessible<RT, 1, offset>::allowed type;
 
 		*reinterpret_cast<RT volatile*>(baseAddr + offset) = v;
 	    }
 
 	    template <typename RT>
-	    void set(Lock const&, size_t const offset, RT const v)
+	    void set(size_t const offset, RT const v)
 	    {
 		if (offset + sizeof(RT) < size)
 		    *reinterpret_cast<RT volatile*>(baseAddr + offset) = v;
 		else
 		    throw std::range_error("writing outside register bank");
 	    }
+	};
+
+	// This is the "fleshed-out", generalized version of the
+	// template. It requires a LockType to be given (and it
+	// verifies the LockType is a valid type of lock.)
+
+	template <typename LockType, size_t size>
+	class A16 : protected A16<void, size> {
+
+	    // Validate the lock type.
+
+	    typedef typename DetermineLock<LockType>::type Lock;
+
+	 public:
+	    explicit A16(uint16_t const a16_offset) :
+		A16<void, size>(a16_offset) {}
+
+	    void* getBaseAddr() const
+	    { return A16<void, size>::getBaseAddr(); }
+
+	    template <typename RT, size_t offset>
+	    RT get(Lock const&) const
+	    { return get<RT, offset>(); }
+
+	    template <typename RT, size_t N, size_t offset>
+	    RT get(Lock const&, size_t const index) const
+	    { return get<RT, offset>(index); }
+
+	    template <typename RT>
+	    RT get(Lock const&, size_t const offset) const
+	    { return get<RT>(offset); }
+
+	    template <typename RT, size_t offset>
+	    void set(Lock const&, RT const v)
+	    { set<RT, offset>(v); }
+
+	    template <typename RT>
+	    void set(Lock const&, size_t const offset, RT const v)
+	    { return set<RT>(offset, v); }
 	};
     };
 };
