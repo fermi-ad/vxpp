@@ -10,7 +10,10 @@ Description
 
 Changes from 2.4:
 
-    - 
+    - Added a partial specialization: vwpp::VME::A16<void, size_t size>.
+      This template still enforces register bank constraints, but removes
+      the locking parameter, requiring the programmer to provide the
+      serialization at a higher level.
 
 System Preparation
 
