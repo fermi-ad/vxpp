@@ -1,5 +1,3 @@
-// $Id: task.cpp,v 1.8 2014/10/22 16:04:51 neswold Exp $
-
 #include <vxWorks.h>
 #include <taskLib.h>
 #include <intLib.h>

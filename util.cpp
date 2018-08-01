@@ -1,5 +1,3 @@
-// $Id: util.cpp,v 1.1 2008/12/19 21:17:42 neswold Exp $
-
 #include <vxWorks.h>
 #include <sysLib.h>
 #include <algorithm>

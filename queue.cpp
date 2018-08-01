@@ -1,5 +1,3 @@
-// $Id: queue.cpp,v 1.4 2009/01/29 17:25:21 neswold Exp $
-
 #include <vxWorks.h>
 #include <msgQLib.h>
 #include <stdexcept>

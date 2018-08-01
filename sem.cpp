@@ -1,5 +1,3 @@
-// $Id: sem.cpp,v 1.12 2014/08/01 15:59:47 neswold Exp $
-
 #include <vxWorks.h>
 #include <intLib.h>
 #include <semLib.h>
