@@ -62,7 +62,7 @@ namespace vwpp {
 	    }
 
 	    template <typename RT, size_t N, size_t offset>
-	    RT get(size_t const index) const
+	    RT getItem(size_t const index) const
 	    {
 		typedef typename Accessible<RT, N, offset>::allowed type;
 
@@ -125,8 +125,8 @@ namespace vwpp {
 	    { return get<RT, offset>(); }
 
 	    template <typename RT, size_t N, size_t offset>
-	    RT get(Lock const&, size_t const index) const
-	    { return get<RT, offset>(index); }
+	    RT getItem(Lock const&, size_t const index) const
+	    { return getItem<RT, offset>(index); }
 
 	    template <typename RT>
 	    RT get(Lock const&, size_t const offset) const
