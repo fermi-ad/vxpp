@@ -13,30 +13,31 @@ namespace vwpp {
 
     // This name space defines an API to access VME entities:
     //
-    //  * Serialized access to A16 space
+    //  * Serialized access to A16/A24/A32 spaces.
 
     namespace VME {
+	enum AddressSpace { A16 = 0x29, A24 = 0x39, A32 = 0x09 };
 
-	char* calcA16BaseAddr(uint32_t);
+	char* calcBaseAddr(AddressSpace, uint32_t);
 
 	// This is the generalized template of a class that controls
-	// access to VME A16 space. It is given as a forward
+	// access to VME memory space. It is given as a forward
 	// declaration and gets defined later in the header.
 
-	template <typename LockType, size_t size>
-	class A16;
+	template <AddressSpace tag, size_t size, typename LockType>
+	class Memory;
 
 	// This is a partially-specialized version where the lock type
 	// is 'void'. This changes the API to not include the lock
 	// parameter and requires an implementer to do serialization
 	// at a higher level.
 
-	template <size_t size>
-	class A16<void, size> {
+	template <AddressSpace tag, size_t size>
+	class Memory<tag, size, void> {
 	    char volatile* const baseAddr;
 
 	    // This template expands to a type that defines 'allowed'
-	    // only if an offset into a VME::A16 register bank is
+	    // only if an offset into a VME::Memory register bank is
 	    // accessible.
 
 	    template <typename RegType, size_t n, size_t offset,
@@ -48,8 +49,8 @@ namespace vwpp {
 	    struct Accessible<RegType, n, offset, false> {};
 
 	 public:
-	    explicit A16(uint16_t const a16_offset) :
-		baseAddr(calcA16BaseAddr(a16_offset)) {}
+	    explicit Memory(uint32_t const offset) :
+		baseAddr(calcBaseAddr(tag, offset)) {}
 
 	    void* getBaseAddr() const { return baseAddr; }
 
@@ -106,39 +107,40 @@ namespace vwpp {
 	// template. It requires a LockType to be given (and it
 	// verifies the LockType is a valid type of lock.)
 
-	template <typename LockType, size_t size>
-	class A16 : protected A16<void, size> {
+	template <AddressSpace tag, size_t size, typename LockType>
+	class Memory : protected Memory<tag, size, void> {
+	    typedef Memory<tag, size, void> Base;
 
 	    // Validate the lock type.
 
 	    typedef typename DetermineLock<LockType>::type Lock;
 
 	 public:
-	    explicit A16(uint16_t const a16_offset) :
-		A16<void, size>(a16_offset) {}
+	    explicit Memory(uint32_t const offset) :
+		Base(offset) {}
 
 	    void* getBaseAddr() const
-	    { return A16<void, size>::getBaseAddr(); }
+	    { return Base::getBaseAddr(); }
 
 	    template <typename RT, size_t offset>
 	    RT get(Lock const&) const
-	    { return get<RT, offset>(); }
+	    { return this->Base::template get<RT, offset>(); }
 
 	    template <typename RT, size_t N, size_t offset>
 	    RT getItem(Lock const&, size_t const index) const
-	    { return getItem<RT, offset>(index); }
+	    { return this->Base::template getItem<RT, offset>(index); }
 
 	    template <typename RT>
 	    RT get(Lock const&, size_t const offset) const
-	    { return get<RT>(offset); }
+	    { return this->Base::template get<RT>(offset); }
 
 	    template <typename RT, size_t offset>
 	    void set(Lock const&, RT const v)
-	    { set<RT, offset>(v); }
+	    { this->Base::template set<RT, offset>(v); }
 
 	    template <typename RT>
 	    void set(Lock const&, size_t const offset, RT const v)
-	    { return set<RT>(offset, v); }
+	    { this->Base::template set<RT>(offset, v); }
 	};
     };
 };
