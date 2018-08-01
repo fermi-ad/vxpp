@@ -77,7 +77,7 @@ namespace vwpp {
 	    template <typename RT>
 	    RT get(size_t const offset) const
 	    {
-		if (offset + sizeof(RT) < size)
+		if (LIKELY(offset + sizeof(RT) < size))
 		    return *reinterpret_cast<RT volatile*>(baseAddr + offset);
 		else
 		    throw std::range_error("reading outside register bank");
@@ -94,7 +94,7 @@ namespace vwpp {
 	    template <typename RT>
 	    void set(size_t const offset, RT const v)
 	    {
-		if (offset + sizeof(RT) < size)
+		if (LIKELY(offset + sizeof(RT) < size))
 		    *reinterpret_cast<RT volatile*>(baseAddr + offset) = v;
 		else
 		    throw std::range_error("writing outside register bank");
