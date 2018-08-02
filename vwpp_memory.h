@@ -48,6 +48,9 @@ namespace vwpp {
 	    template <typename RegType, size_t n, size_t offset>
 	    struct Accessible<RegType, n, offset, false> {};
 
+	 protected:
+	    Memory(Memory const& o) : baseAddr(o.baseAddr) {}
+
 	 public:
 	    explicit Memory(uint32_t const offset) :
 		baseAddr(calcBaseAddr(tag, offset)) {}
@@ -106,7 +109,9 @@ namespace vwpp {
 	// verifies the LockType is a valid type of lock.)
 
 	template <AddressSpace tag, size_t size, typename LockType>
-	class Memory : protected Memory<tag, size, void> {
+	class Memory :
+	    protected Memory<tag, size, void>, private vwpp::Uncopyable
+	{
 	    typedef Memory<tag, size, void> Base;
 
 	    // Validate the lock type.
@@ -116,6 +121,15 @@ namespace vwpp {
 	 public:
 	    explicit Memory(uint32_t const offset) :
 		Base(offset) {}
+
+	    // This allows a memory bank to convert to a new
+	    // LockType. This is usually only necessary in
+	    // constructors and destructors.
+
+	    template <typename NewLockType>
+	    Memory(Memory<tag, size, NewLockType> const& o) :
+		Base(o)
+	    {}
 
 	    void* getBaseAddr() const
 	    { return Base::getBaseAddr(); }
