@@ -29,16 +29,21 @@
 // These macros emit assembly instructions which implement "barriers"
 // used to force ordering.
 //
-// MEMORY_SYNC prevents the processor from proceeding until all
-// previous load and store operations complete.
+// MEMORY_SYNC prevents the processor from performing load or store
+// operations until all previous load and store operations complete.
 //
 // INSTRUCTION_SYNC prevents the processor from proceeding until all
 // previous instructions have completed their execution (which
 // includes load or store operations.)
+//
+// ALL_SYNC is the most expensive sync primitive (in terms of
+// performance.) It prevents the CPU pipeline from doing loads/stores
+// and instruction fetches until all previous activity is complete.
 
 #if defined(PPC603) || defined(PPC604) || defined(PPC750) || defined(PPC7400)
 #define	MEMORY_SYNC		__asm__ volatile (" eieio")
-#define	INSTRUCTION_SYNC	__asm__ volatile (" sync")
+#define	INSTRUCTION_SYNC	__asm__ volatile (" isync")
+#define	ALL_SYNC		__asm__ volatile (" sync")
 #endif
 
 // These forward-declared structures and functions are found in
