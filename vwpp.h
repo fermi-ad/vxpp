@@ -391,19 +391,48 @@ namespace vwpp {
 	~RelPriority() NOTHROW { ::taskPrioritySet(::taskIdSelf(), oldValue); }
     };
 
-    // This class is used by tasks to signal each other when something
-    // of interest has happened.
+    struct IntSignal;
+    struct TaskSignal;
 
-    class Event : private Uncopyable, private NoHeap {
+    class EventBase : private Uncopyable, private NoHeap {
 	semaphore* id;
 
-     public:
-	Event();
-	~Event() NOTHROW;
+     protected:
+	EventBase();
 
-	bool wait(int = -1);
+	bool _wait(int = -1);
+
+     public:
+	virtual ~EventBase();
+
 	void wakeOne() NOTHROW { ::semGive(id); }
 	void wakeAll() NOTHROW { ::semFlush(id); }
+    };
+
+    // Default Event template. We only support two types of events. If
+    // the programmer tried to specify a third type, they'll get a
+    // compiler error.
+
+    template <typename T = TaskSignal>
+    class Event {};
+
+    // This Event type is used for tasks to signal each other.
+
+    template <>
+    class Event<TaskSignal> : private EventBase {
+
+     public:
+	bool wait(int tmo = -1) { return _wait(tmo); }
+    };
+
+    // This Event type is used for an interrupt routine to signal
+    // tasks.
+
+    template <>
+    class Event<IntSignal> : private EventBase {
+
+     public:
+	bool wait(IntLock&, int tmo = -1) { return _wait(tmo); }
     };
 
     // Non-POSIX implementation of conditional variables. This version
@@ -411,7 +440,7 @@ namespace vwpp {
 
     template <Mutex& mtx>
     class CondVar : private Uncopyable, private NoHeap {
-	Event ev;
+	Event<TaskSignal> ev;
 
      public:
 	bool wait(Mutex::Lock<mtx>& lock, int tmo = -1)
@@ -430,7 +459,7 @@ namespace vwpp {
 
     template <typename T, Mutex T::*pmtx>
     class PMCondVar : private Uncopyable, private NoHeap {
-	Event ev;
+	Event<TaskSignal> ev;
 
      public:
 	bool wait(T* const obj, Mutex::PMLock<T, pmtx>& lock,

@@ -42,17 +42,14 @@ void SemaphoreBase::acquire(int tmo)
 	}
 }
 
-// Event constructor -- Builds a binary semaphore used for
-// synchronization.
-
-Event::Event() :
+EventBase::EventBase() :
     id(::semBCreate(SEM_Q_PRIORITY, SEM_EMPTY))
 {
     if (UNLIKELY(!id))
 	throw std::bad_alloc();
 }
 
-Event::~Event() NOTHROW_IMPL
+EventBase::~EventBase() NOTHROW_IMPL
 {
     ::semDelete(id);
 }
@@ -62,7 +59,7 @@ Event::~Event() NOTHROW_IMPL
 // until the timeout occurs. If the function is terminated by a
 // timeout, it returns false, otherwise it returns true.
 
-bool Event::wait(int tmo)
+bool EventBase::_wait(int tmo)
 {
     if (UNLIKELY(ERROR == ::semTake(id, ms_to_tick(tmo))))
 	switch (errno) {
