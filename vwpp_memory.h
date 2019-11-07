@@ -101,6 +101,17 @@ namespace vwpp {
 		else
 		    throw std::range_error("writing outside register bank");
 	    }
+
+	    template <typename RT, size_t N, size_t offset>
+	    void setItem(size_t const index, RT const v)
+	    {
+		typedef typename Accessible<RT, N, offset>::allowed type;
+
+		if (LIKELY(index < N))
+		    reinterpret_cast<RT volatile*>(baseAddr + offset)[index] = v;
+		else
+		    throw std::range_error("out of bounds array access");
+	    }
 	};
 
 	// This is the "fleshed-out", generalized version of the
@@ -152,6 +163,10 @@ namespace vwpp {
 	    template <typename RT>
 	    void set(Lock const&, size_t const offset, RT const v)
 	    { this->Base::template set<RT>(offset, v); }
+
+	    template <typename RT, size_t N, size_t offset>
+	    void setItem(Lock const&, size_t const index, RT const v)
+	    { this->Base::template setItem<RT, N, offset>(index, v); }
 	};
     };
 };
