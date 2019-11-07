@@ -29,12 +29,8 @@ Task::Task() : id(ERROR)
 
 Task::~Task() NOTHROW_IMPL
 {
-    SchedLock lock();
-
-    if (ERROR != id) {
+    if (ERROR != id)
 	::taskDelete(id);
-	id = ERROR;
-    }
 }
 
 // Delays the current task. The delay is given in milliseconds. If,
