@@ -71,8 +71,7 @@ namespace vwpp {
 		typedef typename Accessible<RT, N, offset>::allowed type;
 
 		if (LIKELY(index < N))
-		    return *reinterpret_cast<RT volatile*>(baseAddr + offset +
-							   index);
+		    return reinterpret_cast<RT volatile*>(baseAddr + offset)[index];
 		else
 		    throw std::range_error("out of bounds array access");
 	    }
