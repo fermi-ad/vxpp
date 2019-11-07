@@ -136,8 +136,8 @@ namespace vwpp {
 	    // LockType. This is usually only necessary in
 	    // constructors and destructors.
 
-	    template <typename NewLockType>
-	    Memory(Memory<tag, size, NewLockType> const& o) :
+	    template <typename OldLockType>
+	    Memory(Memory<tag, size, OldLockType> const& o) :
 		Base(o)
 	    {}
 
