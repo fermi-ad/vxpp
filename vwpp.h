@@ -251,7 +251,7 @@ namespace vwpp {
 
 	    ~PMLock() NOTHROW { sem.release(); }
 	};
-    };
+    } __attribute__((deprecated));
 
     // IntLock objects will disable interrupts during their lifetime.
     // Due to VxWorks' semantics, if a task that created the IntLock
