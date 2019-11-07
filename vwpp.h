@@ -413,7 +413,7 @@ namespace vwpp {
     // the programmer tried to specify a third type, they'll get a
     // compiler error.
 
-    template <typename T = TaskSignal>
+    template <typename T = IntSignal>
     class Event {};
 
     // This Event type is used for tasks to signal each other.
