@@ -43,10 +43,10 @@ namespace vwpp {
 	    template <typename RegType, size_t n, size_t offset,
 		      bool = (offset % sizeof(RegType) == 0 &&
 			      offset + sizeof(RegType) * n <= size)>
-	    struct Accessible { typedef Accessible allowed; };
+	    struct Accessible { };
 
 	    template <typename RegType, size_t n, size_t offset>
-	    struct Accessible<RegType, n, offset, false> {};
+	    struct Accessible<RegType, n, offset, true> { typedef Accessible allowed; };
 
 	 protected:
 	    Memory(Memory const& o) : baseAddr(o.baseAddr) {}
