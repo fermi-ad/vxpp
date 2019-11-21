@@ -1,4 +1,4 @@
-Announcing v2.5 of VWPP
+Announcing v2.6 of VWPP
 
 Description
 
@@ -8,26 +8,9 @@ Description
 
         https://cdcvs.fnal.gov/redmine/projects/vxpp/wiki
 
-Changes from 2.4:
+Changes from 2.5:
 
-    - Created an exception class, vwpp::timeout_error, which is derived from
-      std::runtime_error. This exception is thrown when a timeout value is
-      given and the operation times out. Previously, code would catch this
-      condition using std::runtime_error. That code will still work. However,
-      using vwpp:timeout_error lets your code distinguish timeout errors from
-      other run-time errors.
-
-    - The vwpp::NoHeap class now prevents the use of placement-new operators on
-      classes derived from it.
-
-    - The vwpp::Event class is now a template. Only two specializations are
-      allowed: vwpp::Event<vwpp::TaskSignal> and vwpp::Event<vwpp::IntSignal>.
-      If no template parameter is provided, it defaults to vwpp::IntSignal
-      since getting signaled from an interrupt is the primary use of this
-      primitive.
-
-    - The vwpp::VME::A16 template has been generalized and is now
-      vwpp::VME::Memory<AddressSpace tag, size_t size, typename LockType>.
+    - 
 
 System Preparation
 
@@ -43,19 +26,19 @@ Location
 
     BSP        VxWorks    File
 
-    mv2400     6.4        vxworks_boot/v6.4/module/mv2400/vwpp-2.5.out
-    mv2401     6.4        vxworks_boot/v6.4/module/mv2401/vwpp-2.5.out
-    mv2434     6.4        vxworks_boot/v6.4/module/mv2434/vwpp-2.5.out
-    mv5500     6.4        vxworks_boot/v6.4/module/mv5500/vwpp-2.5.out
+    mv2400     6.4        vxworks_boot/v6.4/module/mv2400/vwpp-2.6.out
+    mv2401     6.4        vxworks_boot/v6.4/module/mv2401/vwpp-2.6.out
+    mv2434     6.4        vxworks_boot/v6.4/module/mv2434/vwpp-2.6.out
+    mv5500     6.4        vxworks_boot/v6.4/module/mv5500/vwpp-2.6.out
 
-    mv2400     6.7        vxworks_boot/v6.7/module/mv2400/vwpp-2.5.out
-    mv2401     6.7        vxworks_boot/v6.7/module/mv2401/vwpp-2.5.out
-    mv2434     6.7        vxworks_boot/v6.7/module/mv2434/vwpp-2.5.out
-    mv5500     6.7        vxworks_boot/v6.7/module/mv5500/vwpp-2.5.out
+    mv2400     6.7        vxworks_boot/v6.7/module/mv2400/vwpp-2.6.out
+    mv2401     6.7        vxworks_boot/v6.7/module/mv2401/vwpp-2.6.out
+    mv2434     6.7        vxworks_boot/v6.7/module/mv2434/vwpp-2.6.out
+    mv5500     6.7        vxworks_boot/v6.7/module/mv5500/vwpp-2.6.out
 
     Rather than load this module, one could also link their module with the
     static library. For instance, to build a module called demo.out, a Makefile
     might define the rule as:
 
-        demo.out : demo.o ${PRODUCTS_LIBDIR}/libvwpp-2.5.a
+        demo.out : demo.o ${PRODUCTS_LIBDIR}/libvwpp-2.6.a
 	        ${make-mod}
