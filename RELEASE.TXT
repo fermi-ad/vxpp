@@ -10,10 +10,24 @@ Description
 
 Changes from 2.4:
 
-    - Added a partial specialization: vwpp::VME::A16<void, size_t size>.
-      This template still enforces register bank constraints, but removes
-      the locking parameter, requiring the programmer to provide the
-      serialization at a higher level.
+    - Created an exception class, vwpp::timeout_error, which is derived from
+      std::runtime_error. This exception is thrown when a timeout value is
+      given and the operation times out. Previously, code would catch this
+      condition using std::runtime_error. That code will still work. However,
+      using vwpp:timeout_error lets your code distinguish timeout errors from
+      other run-time errors.
+
+    - The vwpp::NoHeap class now prevents the use of placement-new operators on
+      classes derived from it.
+
+    - The vwpp::Event class is now a template. Only two specializations are
+      allowed: vwpp::Event<vwpp::TaskSignal> and vwpp::Event<vwpp::IntSignal>.
+      If no template parameter is provided, it defaults to vwpp::IntSignal
+      since getting signaled from an interrupt is the primary use of this
+      primitive.
+
+    - The vwpp::VME::A16 template has been generalized and is now
+      vwpp::VME::Memory<AddressSpace tag, size_t size, typename LockType>.
 
 System Preparation
 
