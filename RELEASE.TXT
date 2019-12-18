@@ -10,7 +10,13 @@ Description
 
 Changes from 2.5:
 
-    - 
+    - The memory synchronization macros -- MEMORY_SYNC, INSTRUCTION_SYNC, and
+      ALL_SYNC -- now prevent compiler optimizations across their boundary.  Up
+      to this point, the compiler could allow optimizations of global values
+      across the assembly instruction these macros generate.
+      
+      It should be pointed out that the VxWorks macros EIEIO and EIEIO_SYNC
+      suffer from this problem.
 
 System Preparation
 
