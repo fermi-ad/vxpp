@@ -1,7 +1,7 @@
 #include <vxWorks.h>
 #include <sysLib.h>
 #include <algorithm>
-#include "vwpp.h"
+#include "./vwpp.h"
 
 int vwpp::ms_to_tick(int const v)
 {

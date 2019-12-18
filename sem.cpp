@@ -1,7 +1,7 @@
 #include <vxWorks.h>
 #include <intLib.h>
 #include <semLib.h>
-#include "vwpp.h"
+#include "./vwpp.h"
 
 using namespace vwpp;
 

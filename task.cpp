@@ -3,7 +3,7 @@
 #include <intLib.h>
 #include <sysLib.h>
 #include <stdexcept>
-#include "vwpp.h"
+#include "./vwpp.h"
 
 using namespace vwpp;
 

@@ -2,7 +2,7 @@
 #include <msgQLib.h>
 #include <stdexcept>
 #include <cassert>
-#include "vwpp.h"
+#include "./vwpp.h"
 
 using namespace vwpp;
 
