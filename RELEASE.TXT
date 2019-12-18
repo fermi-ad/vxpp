@@ -1,4 +1,4 @@
-Announcing v2.6 of VWPP
+Announcing v2.7 of VWPP
 
 Description
 
@@ -8,15 +8,9 @@ Description
 
         https://cdcvs.fnal.gov/redmine/projects/vxpp/wiki
 
-Changes from 2.5:
+Changes from 2.6:
 
-    - The memory synchronization macros -- MEMORY_SYNC, INSTRUCTION_SYNC, and
-      ALL_SYNC -- now prevent compiler optimizations across their boundary.  Up
-      to this point, the compiler could allow optimizations of global values
-      across the assembly instruction these macros generate.
-      
-      It should be pointed out that the VxWorks macros EIEIO and EIEIO_SYNC
-      suffer from this problem.
+    - 
 
 System Preparation
 
@@ -32,19 +26,19 @@ Location
 
     BSP        VxWorks    File
 
-    mv2400     6.4        vxworks_boot/v6.4/module/mv2400/vwpp-2.6.out
-    mv2401     6.4        vxworks_boot/v6.4/module/mv2401/vwpp-2.6.out
-    mv2434     6.4        vxworks_boot/v6.4/module/mv2434/vwpp-2.6.out
-    mv5500     6.4        vxworks_boot/v6.4/module/mv5500/vwpp-2.6.out
+    mv2400     6.4        vxworks_boot/v6.4/module/mv2400/vwpp-2.7.out
+    mv2401     6.4        vxworks_boot/v6.4/module/mv2401/vwpp-2.7.out
+    mv2434     6.4        vxworks_boot/v6.4/module/mv2434/vwpp-2.7.out
+    mv5500     6.4        vxworks_boot/v6.4/module/mv5500/vwpp-2.7.out
 
-    mv2400     6.7        vxworks_boot/v6.7/module/mv2400/vwpp-2.6.out
-    mv2401     6.7        vxworks_boot/v6.7/module/mv2401/vwpp-2.6.out
-    mv2434     6.7        vxworks_boot/v6.7/module/mv2434/vwpp-2.6.out
-    mv5500     6.7        vxworks_boot/v6.7/module/mv5500/vwpp-2.6.out
+    mv2400     6.7        vxworks_boot/v6.7/module/mv2400/vwpp-2.7.out
+    mv2401     6.7        vxworks_boot/v6.7/module/mv2401/vwpp-2.7.out
+    mv2434     6.7        vxworks_boot/v6.7/module/mv2434/vwpp-2.7.out
+    mv5500     6.7        vxworks_boot/v6.7/module/mv5500/vwpp-2.7.out
 
     Rather than load this module, one could also link their module with the
     static library. For instance, to build a module called demo.out, a Makefile
     might define the rule as:
 
-        demo.out : demo.o ${PRODUCTS_LIBDIR}/libvwpp-2.6.a
+        demo.out : demo.o ${PRODUCTS_LIBDIR}/libvwpp-2.7.a
 	        ${make-mod}

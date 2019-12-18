@@ -13,17 +13,17 @@
 // project's version changes so the correct header gets used!
 
 #if !defined(__VWPP_VERSION)
-#define __VWPP_VERSION  0x205
+#define __VWPP_VERSION  0x207
 #endif
 
-#if __VWPP_VERSION != 0x205
+#if __VWPP_VERSION != 0x207
 #error "Mismatched VWPP headers."
 #endif
 
 #ifdef __BUILDING_VWPP
 #include "./vwpp_types.h"
 #else
-#include <vwpp_types-2.5.h>
+#include <vwpp_types-2.7.h>
 #endif
 
 // These macros emit assembly instructions which implement "barriers"
@@ -559,10 +559,10 @@ namespace vwpp {
 #ifdef __BUILDING_VWPP
 #include "./vwpp_memory.h"
 #else
-#include <vwpp_memory-2.5.h>
+#include <vwpp_memory-2.7.h>
 #endif
 
-#elif __VWPP_VERSION != 0x205
+#elif __VWPP_VERSION != 0x207
 #error "Already included different vwpp.h"
 #endif
 
