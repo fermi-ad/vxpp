@@ -103,8 +103,8 @@ namespace vwpp {
 
 	class timeout_error : public std::runtime_error {
 	 public:
-	    timeout_error() :
-		std::runtime_error("timeout obtaining resource") {}
+	    explicit timeout_error(char const* msg = 0) :
+		std::runtime_error(msg ? msg : "timeout obtaining resource") {}
 	};
 
 	// Base class for semaphore-like resources.
