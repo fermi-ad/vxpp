@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include "./vwpp.h"
 
-using namespace vwpp;
+using namespace vwpp::v2_7;
 
 // This is the entry point for all tasks created with the Task
 // class. It is a static function, so it has no object instance. By

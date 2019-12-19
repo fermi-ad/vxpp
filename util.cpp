@@ -3,7 +3,9 @@
 #include <algorithm>
 #include "./vwpp.h"
 
-int vwpp::ms_to_tick(int const v)
+using namespace vwpp::v2_7;
+
+int ms_to_tick(int const v)
 {
     if (v == WAIT_FOREVER)
 	return WAIT_FOREVER;
@@ -11,8 +13,7 @@ int vwpp::ms_to_tick(int const v)
 	return (std::max(v, 0) * ::sysClkRateGet() + 999) / 1000;
 }
 
-char* vwpp::VME::calcBaseAddr(vwpp::VME::AddressSpace const tag,
-			      uint32_t const base)
+char* VME::calcBaseAddr(VME::AddressSpace const tag, uint32_t const base)
 {
     char* addr;
 

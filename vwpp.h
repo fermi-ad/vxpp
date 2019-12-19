@@ -12,14 +12,6 @@
 // NOTE: The version number for vwpp_types.h needs to change when the
 // project's version changes so the correct header gets used!
 
-#if !defined(__VWPP_VERSION)
-#define __VWPP_VERSION  0x207
-#endif
-
-#if __VWPP_VERSION != 0x207
-#error "Mismatched VWPP headers."
-#endif
-
 #ifdef __BUILDING_VWPP
 #include "./vwpp_types.h"
 #else
@@ -107,453 +99,463 @@ extern "C" {
 // All identifiers of this module are located in the vwpp name space.
 
 namespace vwpp {
+    namespace v2_7 {
 
-    class timeout_error : public std::runtime_error {
-     public:
-	timeout_error() : std::runtime_error("timeout obtaining resource") {}
-    };
+	class timeout_error : public std::runtime_error {
+	 public:
+	    timeout_error() :
+		std::runtime_error("timeout obtaining resource") {}
+	};
 
-    // Base class for semaphore-like resources.
+	// Base class for semaphore-like resources.
 
-    class SemaphoreBase : private Uncopyable, private NoHeap {
-	semaphore* const res;
-	SemaphoreBase();
+	class SemaphoreBase : private Uncopyable, private NoHeap {
+	    semaphore* const res;
+	    SemaphoreBase();
 
-     protected:
-	void acquire(int);
-	void release() NOTHROW { ::semGive(res); }
+	 protected:
+	    void acquire(int);
+	    void release() NOTHROW { ::semGive(res); }
 
-	explicit SemaphoreBase(semaphore* const tmp) : res(tmp) {}
+	    explicit SemaphoreBase(semaphore* const tmp) : res(tmp) {}
 
-     public:
-	virtual ~SemaphoreBase() NOTHROW
-	{
-	    ::semTake(res, WAIT_FOREVER);
-	    ::semDelete(res);
-	}
-    };
+	 public:
+	    virtual ~SemaphoreBase() NOTHROW
+	    {
+		::semTake(res, WAIT_FOREVER);
+		::semDelete(res);
+	    }
+	};
 
-    // Mutexes are mutual exclusion locks. They can be locked multiple
-    // times by the same process. They also support priority inversion
-    // and, while a task owns the mutex, it cannot be deleted.
+	// Mutexes are mutual exclusion locks. They can be locked
+	// multiple times by the same process. They also support
+	// priority inversion and, while a task owns the mutex, it
+	// cannot be deleted.
 
-    class Mutex : public SemaphoreBase {
-	template <Mutex& mtx> friend class Lock;
-	template <Mutex& mtx> friend class Unlock;
-	template <typename T, Mutex T::*PMtx> friend class PMLock;
-	template <typename T, Mutex T::*PMtx> friend class PMUnlock;
+	class Mutex : public SemaphoreBase {
+	    template <Mutex& mtx> friend class Lock;
+	    template <Mutex& mtx> friend class Unlock;
+	    template <typename T, Mutex T::*PMtx> friend class PMLock;
+	    template <typename T, Mutex T::*PMtx> friend class PMUnlock;
 
-     public:
+	 public:
 
-	// Mutex::Lock<> is used to hold ownership of a Mutex during
-	// the object's lifetime. The single parameter of the template
-	// is the mutex with which this lock is associated.
+	    // Mutex::Lock<> is used to hold ownership of a Mutex
+	    // during the object's lifetime. The single parameter of
+	    // the template is the mutex with which this lock is
+	    // associated.
 
+	    template <Mutex& mtx>
+	    class Lock : private Uncopyable, private NoHeap {
+	     public:
+		explicit Lock(int tmo = -1) { mtx.acquire(tmo); }
+		~Lock() NOTHROW { mtx.release(); }
+	    };
+
+	    // Mutex::Unlock<> is used to release ownership of a Mutex
+	    // during the object's lifetime. The single parameter of
+	    // the template is the mutex with which this lock is
+	    // associated.  Since you can't release an un-owned mutex,
+	    // the constructor requires you to prove you have a lock
+	    // on the mutex, proving at compile-time that you already
+	    // own it.
+
+	    template <Mutex& mtx>
+	    class Unlock : private Uncopyable, private NoHeap {
+	     public:
+		explicit Unlock(Lock<mtx>&) { mtx.release(); }
+		~Unlock() NOTHROW { mtx.acquire(-1); }
+	    };
+
+	    // Mutex::PMLock<> is used to hold ownership of a Mutex
+	    // residing in an object during the lock object's
+	    // lifetime.  The first template parameter is the class
+	    // holding the mutex and the second selects the mutex
+	    // field in the class.
+
+	    template <typename T, Mutex T::*pmtx>
+	    class PMLock : private Uncopyable, private NoHeap {
+		Mutex& mtx;
+
+	     public:
+		explicit PMLock(T* const obj, int const tmo = -1) :
+		    mtx(obj->*pmtx)
+		{ mtx.acquire(tmo); }
+
+		~PMLock() NOTHROW { mtx.release(); }
+	    };
+
+	    // Mutex::PMUnlock<> is used to release ownership of a
+	    // Mutex residing in an object during the unlock object's
+	    // lifetime.  The first template parameter is the class
+	    // holding the mutex and the second parameter selects the
+	    // mutex field in the class. Since you can't release an
+	    // un-owned mutex, the constructor requires you to prove
+	    // you have a lock on the mutex, proving at compile-time
+	    // that you already own it.
+
+	    template <typename T, Mutex T::*pmtx>
+	    class PMUnlock : private Uncopyable, private NoHeap {
+		Mutex& mtx;
+
+	     public:
+		explicit PMUnlock(T* const obj, PMLock<T, pmtx>&) :
+		    mtx(obj->*pmtx)
+		{ mtx.release(); }
+
+		~PMUnlock() NOTHROW { mtx.acquire(-1); }
+	    };
+
+	    Mutex();
+	};
+
+	// Experimental class that associates a variable with a mutex.
+	// Access to the variable is only allowed if a lock is
+	// provided proving, at compile-time, you own the required
+	// mutex.
+
+	template <typename T, Mutex& mtx>
+	class MVar : private Uncopyable, private NoHeap {
+	    T value;
+
+	 public:
+	    MVar() : value(T()) {}
+	    explicit MVar(T const& o) : value(o) {}
+
+	    T operator()(Mutex::Lock<mtx>&) const { return value; }
+	    void operator()(Mutex::Lock<mtx>&, T const& o) { value = o; }
+	};
+
+	// This class uses the "Counting" Semaphore as its underlying
+	// implementation. Pending tasks are queued by priority.
+
+	class CountingSemaphore : public SemaphoreBase {
+	 public:
+	    explicit CountingSemaphore(int = 1);
+
+	    template <CountingSemaphore& sem>
+	    class Lock : private Uncopyable, private NoHeap {
+	     public:
+		explicit Lock(int tmo = -1) { sem.acquire(tmo); }
+		~Lock() NOTHROW { sem.release(); }
+	    };
+
+	    template <typename T, CountingSemaphore T::*PSem>
+	    class PMLock : private Uncopyable, private NoHeap {
+		CountingSemaphore& sem;
+
+	     public:
+		explicit PMLock(T* const obj, int const tmo = -1) :
+		    sem(obj->*PSem)
+		{ sem.acquire(tmo); }
+
+		~PMLock() NOTHROW { sem.release(); }
+	    };
+	} __attribute__((deprecated));
+
+	// IntLock objects will disable interrupts during their
+	// lifetime.  Due to VxWorks' semantics, if a task that
+	// created the IntLock gets blocked, interrupts will get
+	// re-enabled (which is a very useful thing!)
+
+	class IntLock : private Uncopyable, private NoHeap {
+	    int const oldValue;
+
+	 public:
+	    IntLock() NOTHROW : oldValue(::intLock()) {}
+	    ~IntLock() NOTHROW { ::intUnlock(oldValue); }
+	};
+
+	// SchedLock objects will disable the task scheduler during
+	// the object's lifetime.
+
+	class SchedLock : private Uncopyable, private NoHeap {
+	 public:
+	    SchedLock() NOTHROW { ::taskLock(); }
+	    ~SchedLock() NOTHROW { ::taskUnlock(); }
+	};
+
+	// ProtLock objects prevent the task that created it from
+	// being destroyed during the object's lifetime.
+
+	class ProtLock : private Uncopyable, private NoHeap {
+	 public:
+	    ProtLock() NOTHROW { ::taskSafe(); }
+	    ~ProtLock() NOTHROW { ::taskUnsafe(); }
+	};
+
+	// This template allows us to detect serialization locks.
+
+	template <typename T>
+	struct DetermineLock {
+	};
+
+	template <>
 	template <Mutex& mtx>
-	class Lock : private Uncopyable, private NoHeap {
-	 public:
-	    explicit Lock(int tmo = -1) { mtx.acquire(tmo); }
-	    ~Lock() NOTHROW { mtx.release(); }
+	struct DetermineLock<Mutex::Lock<mtx> > {
+	    typedef Mutex::Lock<mtx> type;
 	};
 
-	// Mutex::Unlock<> is used to release ownership of a Mutex
-	// during the object's lifetime. The single parameter of the
-	// template is the mutex with which this lock is associated.
-	// Since you can't release an un-owned mutex, the constructor
-	// requires you to prove you have a lock on the mutex, proving
-	// at compile-time that you already own it.
-
-	template <Mutex& mtx>
-	class Unlock : private Uncopyable, private NoHeap {
-	 public:
-	    explicit Unlock(Lock<mtx>&) { mtx.release(); }
-	    ~Unlock() NOTHROW { mtx.acquire(-1); }
-	};
-
-	// Mutex::PMLock<> is used to hold ownership of a Mutex
-	// residing in an object during the lock object's lifetime.
-	// The first template parameter is the class holding the mutex
-	// and the second selects the mutex field in the class.
-
+	template <>
 	template <typename T, Mutex T::*pmtx>
-	class PMLock : private Uncopyable, private NoHeap {
-	    Mutex& mtx;
-
-	 public:
-	    explicit PMLock(T* const obj, int const tmo = -1) :
-		mtx(obj->*pmtx)
-	    { mtx.acquire(tmo); }
-
-	    ~PMLock() NOTHROW { mtx.release(); }
+	struct DetermineLock<Mutex::PMLock<T, pmtx> > {
+	    typedef Mutex::PMLock<T, pmtx> type;
 	};
 
-	// Mutex::PMUnlock<> is used to release ownership of a Mutex
-	// residing in an object during the unlock object's lifetime.
-	// The first template parameter is the class holding the mutex
-	// and the second parameter selects the mutex field in the
-	// class. Since you can't release an un-owned mutex, the
-	// constructor requires you to prove you have a lock on the
-	// mutex, proving at compile-time that you already own it.
-
-	template <typename T, Mutex T::*pmtx>
-	class PMUnlock : private Uncopyable, private NoHeap {
-	    Mutex& mtx;
-
-	 public:
-	    explicit PMUnlock(T* const obj, PMLock<T, pmtx>&) :
-		mtx(obj->*pmtx)
-	    { mtx.release(); }
-
-	    ~PMUnlock() NOTHROW { mtx.acquire(-1); }
-	};
-
-	Mutex();
-    };
-
-    // Experimental class that associates a variable with a mutex.
-    // Access to the variable is only allowed if a lock is provided
-    // proving, at compile-time, you own the required mutex.
-
-    template <typename T, Mutex& mtx>
-    class MVar : private Uncopyable, private NoHeap {
-	T value;
-
-     public:
-	MVar() : value(T()) {}
-	explicit MVar(T const& o) : value(o) {}
-
-	T operator()(Mutex::Lock<mtx>&) const { return value; }
-	void operator()(Mutex::Lock<mtx>&, T const& o) { value = o; }
-    };
-
-    // This class uses the "Counting" Semaphore as its underlying
-    // implementation. Pending tasks are queued by priority.
-
-    class CountingSemaphore : public SemaphoreBase {
-     public:
-	explicit CountingSemaphore(int = 1);
-
+	template <>
 	template <CountingSemaphore& sem>
-	class Lock : private Uncopyable, private NoHeap {
-	 public:
-	    explicit Lock(int tmo = -1) { sem.acquire(tmo); }
-	    ~Lock() NOTHROW { sem.release(); }
+	struct DetermineLock<CountingSemaphore::Lock<sem> > {
+	    typedef CountingSemaphore::Lock<sem> type;
 	};
 
-	template <typename T, CountingSemaphore T::*PSem>
-	class PMLock : private Uncopyable, private NoHeap {
-	    CountingSemaphore& sem;
+	template <>
+	struct DetermineLock<IntLock> {
+	    typedef IntLock type;
+	};
+
+	template <>
+	struct DetermineLock<SchedLock> {
+	    typedef SchedLock type;
+	};
+
+	template <>
+	struct DetermineLock<ProtLock> {
+	    typedef ProtLock type;
+	};
+
+	// During this object's lifetime, the priority of the task is
+	// changed to 'Prio'.
+
+	template <unsigned Prio>
+	class AbsPriority : private Uncopyable, private NoHeap {
+	    int oldValue;
 
 	 public:
-	    explicit PMLock(T* const obj, int const tmo = -1) :
-		sem(obj->*PSem)
-	    { sem.acquire(tmo); }
+	    AbsPriority()
+	    {
+		int const id = ::taskIdSelf();
 
-	    ~PMLock() NOTHROW { sem.release(); }
-	};
-    } __attribute__((deprecated));
-
-    // IntLock objects will disable interrupts during their lifetime.
-    // Due to VxWorks' semantics, if a task that created the IntLock
-    // gets blocked, interrupts will get re-enabled (which is a very
-    // useful thing!)
-
-    class IntLock : private Uncopyable, private NoHeap {
-	int const oldValue;
-
-     public:
-	IntLock() NOTHROW : oldValue(::intLock()) {}
-	~IntLock() NOTHROW { ::intUnlock(oldValue); }
-    };
-
-    // SchedLock objects will disable the task scheduler during the
-    // object's lifetime.
-
-    class SchedLock : private Uncopyable, private NoHeap {
-     public:
-	SchedLock() NOTHROW { ::taskLock(); }
-	~SchedLock() NOTHROW { ::taskUnlock(); }
-    };
-
-    // ProtLock objects prevent the task that created it from being
-    // destroyed during the object's lifetime.
-
-    class ProtLock : private Uncopyable, private NoHeap {
-     public:
-	ProtLock() NOTHROW { ::taskSafe(); }
-	~ProtLock() NOTHROW { ::taskUnsafe(); }
-    };
-
-    // This template allows us to detect serialization locks.
-
-    template <typename T>
-    struct DetermineLock {
-    };
-
-    template <>
-    template <Mutex& mtx>
-    struct DetermineLock<Mutex::Lock<mtx> > {
-	typedef Mutex::Lock<mtx> type;
-    };
-
-    template <>
-    template <typename T, Mutex T::*pmtx>
-    struct DetermineLock<Mutex::PMLock<T, pmtx> > {
-	typedef Mutex::PMLock<T, pmtx> type;
-    };
-
-    template <>
-    template <CountingSemaphore& sem>
-    struct DetermineLock<CountingSemaphore::Lock<sem> > {
-	typedef CountingSemaphore::Lock<sem> type;
-    };
-
-    template <>
-    struct DetermineLock<IntLock> {
-	typedef IntLock type;
-    };
-
-    template <>
-    struct DetermineLock<SchedLock> {
-	typedef SchedLock type;
-    };
-
-    template <>
-    struct DetermineLock<ProtLock> {
-	typedef ProtLock type;
-    };
-
-    // During this object's lifetime, the priority of the task is
-    // changed to 'Prio'.
-
-    template <unsigned Prio>
-    class AbsPriority : private Uncopyable, private NoHeap {
-	int oldValue;
-
-     public:
-	AbsPriority()
-	{
-	    int const id = ::taskIdSelf();
-
-	    if (LIKELY(OK == ::taskPriorityGet(id, &oldValue))) {
-		if (UNLIKELY(ERROR == ::taskPrioritySet(id, Prio)))
-		    throw std::runtime_error("couldn't set task priority");
-	    } else
-		throw std::runtime_error("couldn't get current task priority");
-	}
-
-	~AbsPriority() NOTHROW { ::taskPrioritySet(::taskIdSelf(), oldValue); }
-    };
-
-    template <unsigned Prio>
-    class MinAbsPriority : private Uncopyable, private NoHeap {
-	int oldValue;
-
-     public:
-	MinAbsPriority()
-	{
-	    int const id = ::taskIdSelf();
-
-	    if (LIKELY(OK == ::taskPriorityGet(id, &oldValue))) {
-		if (oldValue > Prio)
+		if (LIKELY(OK == ::taskPriorityGet(id, &oldValue))) {
 		    if (UNLIKELY(ERROR == ::taskPrioritySet(id, Prio)))
 			throw std::runtime_error("couldn't set task priority");
-	    } else
-		throw std::runtime_error("couldn't get current task priority");
-	}
+		} else
+		    throw std::runtime_error("couldn't get current task priority");
+	    }
 
-	~MinAbsPriority() NOTHROW
-	{
-	    ::taskPrioritySet(::taskIdSelf(), oldValue);
-	}
+	    ~AbsPriority() NOTHROW { ::taskPrioritySet(::taskIdSelf(), oldValue); }
+	};
+
+	template <unsigned Prio>
+	class MinAbsPriority : private Uncopyable, private NoHeap {
+	    int oldValue;
+
+	 public:
+	    MinAbsPriority()
+	    {
+		int const id = ::taskIdSelf();
+
+		if (LIKELY(OK == ::taskPriorityGet(id, &oldValue))) {
+		    if (oldValue > Prio)
+			if (UNLIKELY(ERROR == ::taskPrioritySet(id, Prio)))
+			    throw std::runtime_error("couldn't set task priority");
+		} else
+		    throw std::runtime_error("couldn't get current task priority");
+	    }
+
+	    ~MinAbsPriority() NOTHROW
+	    {
+		::taskPrioritySet(::taskIdSelf(), oldValue);
+	    }
+	};
+
+	template <int Prio>
+	class RelPriority : private Uncopyable, private NoHeap {
+	    int oldValue;
+
+	 public:
+	    RelPriority()
+	    {
+		int const id = ::taskIdSelf();
+
+		if (LIKELY(OK == ::taskPriorityGet(id, &oldValue))) {
+		    int const nv = oldValue - Prio;
+		    int const np =
+			(UNLIKELY(nv < 0) ? 0 : (UNLIKELY(nv > 255) ? 255 : nv));
+
+		    if (UNLIKELY(ERROR == ::taskPrioritySet(id, np)))
+			throw std::runtime_error("couldn't set task priority");
+		} else
+		    throw std::runtime_error("couldn't get current task priority");
+	    }
+
+	    ~RelPriority() NOTHROW { ::taskPrioritySet(::taskIdSelf(), oldValue); }
+	};
+
+	struct IntSignal;
+	struct TaskSignal;
+
+	class EventBase : private Uncopyable, private NoHeap {
+	    semaphore* id;
+
+	 protected:
+	    EventBase();
+
+	    bool _wait(int = -1);
+
+	 public:
+	    virtual ~EventBase();
+
+	    void wakeOne() NOTHROW { ::semGive(id); }
+	    void wakeAll() NOTHROW { ::semFlush(id); }
+	};
+
+	// Default Event template. We only support two types of
+	// events. If the programmer tried to specify a third type,
+	// they'll get a compiler error.
+
+	template <typename T = IntSignal>
+	class Event {};
+
+	// This Event type is used for tasks to signal each other.
+
+	template <>
+	class Event<TaskSignal> : private EventBase {
+
+	 public:
+	    bool wait(int tmo = -1) { return _wait(tmo); }
+	};
+
+	// This Event type is used for an interrupt routine to signal
+	// tasks.
+
+	template <>
+	class Event<IntSignal> : private EventBase {
+
+	 public:
+	    bool wait(IntLock&, int tmo = -1) { return _wait(tmo); }
+	};
+
+	// Non-POSIX implementation of conditional variables. This
+	// version works with global mutexes.
+
+	template <Mutex& mtx>
+	class CondVar : private Uncopyable, private NoHeap {
+	    Event<TaskSignal> ev;
+
+	 public:
+	    bool wait(Mutex::Lock<mtx>& lock, int tmo = -1)
+	    {
+		SchedLock sLock;
+		Mutex::Unlock<mtx> uLock(lock);
+
+		return ev.wait(tmo);
+	    }
+
+	    void signal(Mutex::Lock<mtx> const&) NOTHROW { ev.wakeOne(); }
+	};
+
+	// Non-POSIX implementation of conditional variables. This
+	// version works inside classes.
+
+	template <typename T, Mutex T::*pmtx>
+	class PMCondVar : private Uncopyable, private NoHeap {
+	    Event<TaskSignal> ev;
+
+	 public:
+	    bool wait(T* const obj, Mutex::PMLock<T, pmtx>& lock,
+		      int tmo = -1)
+	    {
+		SchedLock sLock;
+		Mutex::PMUnlock<T, pmtx> uLock(obj, lock);
+
+		return ev.wait(tmo);
+	    }
+
+	    void signal(Mutex::PMLock<T, pmtx> const&) NOTHROW { ev.wakeOne(); }
+	};
+
+	// **** This section defines several classes that support the
+	// **** message queue interface provided by VxWorks.
+
+	class QueueBase : private Uncopyable {
+	    msg_q* const id;
+
+	    bool _msg_send(void const*, size_t, int, int);
+
+	 protected:
+	    bool _pop_front(void*, size_t, int);
+	    bool _push_front(void const*, size_t, int);
+	    bool _push_back(void const*, size_t, int);
+
+	 public:
+	    QueueBase(size_t, size_t);
+	    virtual ~QueueBase() NOTHROW;
+
+	    size_t total() const;
+	};
+
+	// This template version of the Queue is what applications
+	// should use. It allows better type-safety than the
+	// QueueBase.
+
+	template <typename T, size_t nn>
+	class Queue : public QueueBase {
+	 public:
+	    Queue() : QueueBase(sizeof(T), nn) {}
+
+	    inline bool pop_front(T& tt, int tmo = -1)
+	    {
+		return _pop_front(&tt, sizeof(T), tmo);
+	    }
+
+	    inline bool push_front(T const& tt, int tmo = -1)
+	    {
+		return _push_front(&tt, sizeof(T), tmo);
+	    }
+
+	    inline bool push_back(T const& tt, int tmo = -1)
+	    {
+		return _push_back(&tt, sizeof(T), tmo);
+	    }
+	};
+
+	// **** This section defines classes that implement the VxWorks
+	// **** task interfaces.
+
+	// This class is used to create VxWorks tasks.
+
+	class Task : private Uncopyable {
+	 private:
+	    int id;
+
+	    static void initTask(Task*);
+
+	 protected:
+	    virtual void taskEntry() = 0;
+
+	    void delay(int) const;
+	    void yieldCpu() const { delay(0); }
+
+	 public:
+	    Task();
+	    virtual ~Task() NOTHROW;
+
+	    bool isReady() const;
+	    bool isSuspended() const;
+	    bool isValid() const;
+	    char const* name() const;
+
+	    int priority() const;
+	    void resume() const;
+	    void suspend() const;
+
+	    void run(char const*, unsigned char, int);
+	};
+
+	// Other prototypes...
+
+	int ms_to_tick(int);
     };
-
-    template <int Prio>
-    class RelPriority : private Uncopyable, private NoHeap {
-	int oldValue;
-
-     public:
-	RelPriority()
-	{
-	    int const id = ::taskIdSelf();
-
-	    if (LIKELY(OK == ::taskPriorityGet(id, &oldValue))) {
-		int const nv = oldValue - Prio;
-		int const np =
-		    (UNLIKELY(nv < 0) ? 0 : (UNLIKELY(nv > 255) ? 255 : nv));
-
-		if (UNLIKELY(ERROR == ::taskPrioritySet(id, np)))
-		    throw std::runtime_error("couldn't set task priority");
-	    } else
-		throw std::runtime_error("couldn't get current task priority");
-	}
-
-	~RelPriority() NOTHROW { ::taskPrioritySet(::taskIdSelf(), oldValue); }
-    };
-
-    struct IntSignal;
-    struct TaskSignal;
-
-    class EventBase : private Uncopyable, private NoHeap {
-	semaphore* id;
-
-     protected:
-	EventBase();
-
-	bool _wait(int = -1);
-
-     public:
-	virtual ~EventBase();
-
-	void wakeOne() NOTHROW { ::semGive(id); }
-	void wakeAll() NOTHROW { ::semFlush(id); }
-    };
-
-    // Default Event template. We only support two types of events. If
-    // the programmer tried to specify a third type, they'll get a
-    // compiler error.
-
-    template <typename T = IntSignal>
-    class Event {};
-
-    // This Event type is used for tasks to signal each other.
-
-    template <>
-    class Event<TaskSignal> : private EventBase {
-
-     public:
-	bool wait(int tmo = -1) { return _wait(tmo); }
-    };
-
-    // This Event type is used for an interrupt routine to signal
-    // tasks.
-
-    template <>
-    class Event<IntSignal> : private EventBase {
-
-     public:
-	bool wait(IntLock&, int tmo = -1) { return _wait(tmo); }
-    };
-
-    // Non-POSIX implementation of conditional variables. This version
-    // works with global mutexes.
-
-    template <Mutex& mtx>
-    class CondVar : private Uncopyable, private NoHeap {
-	Event<TaskSignal> ev;
-
-     public:
-	bool wait(Mutex::Lock<mtx>& lock, int tmo = -1)
-	{
-	    SchedLock sLock;
-	    Mutex::Unlock<mtx> uLock(lock);
-
-	    return ev.wait(tmo);
-	}
-
-	void signal(Mutex::Lock<mtx> const&) NOTHROW { ev.wakeOne(); }
-    };
-
-    // Non-POSIX implementation of conditional variables. This version
-    // works inside classes.
-
-    template <typename T, Mutex T::*pmtx>
-    class PMCondVar : private Uncopyable, private NoHeap {
-	Event<TaskSignal> ev;
-
-     public:
-	bool wait(T* const obj, Mutex::PMLock<T, pmtx>& lock,
-		  int tmo = -1)
-	{
-	    SchedLock sLock;
-	    Mutex::PMUnlock<T, pmtx> uLock(obj, lock);
-
-	    return ev.wait(tmo);
-	}
-
-	void signal(Mutex::PMLock<T, pmtx> const&) NOTHROW { ev.wakeOne(); }
-    };
-
-    // **** This section defines several classes that support the
-    // **** message queue interface provided by VxWorks.
-
-    class QueueBase : private Uncopyable {
-	msg_q* const id;
-
-	bool _msg_send(void const*, size_t, int, int);
-
-     protected:
-	bool _pop_front(void*, size_t, int);
-	bool _push_front(void const*, size_t, int);
-	bool _push_back(void const*, size_t, int);
-
-     public:
-	QueueBase(size_t, size_t);
-	virtual ~QueueBase() NOTHROW;
-
-	size_t total() const;
-    };
-
-    // This template version of the Queue is what applications should
-    // use. It allows better type-safety than the QueueBase.
-
-    template <typename T, size_t nn>
-    class Queue : public QueueBase {
-     public:
-	Queue() : QueueBase(sizeof(T), nn) {}
-
-	inline bool pop_front(T& tt, int tmo = -1)
-	{
-	    return _pop_front(&tt, sizeof(T), tmo);
-	}
-
-	inline bool push_front(T const& tt, int tmo = -1)
-	{
-	    return _push_front(&tt, sizeof(T), tmo);
-	}
-
-	inline bool push_back(T const& tt, int tmo = -1)
-	{
-	    return _push_back(&tt, sizeof(T), tmo);
-	}
-    };
-
-    // **** This section defines classes that implement the VxWorks
-    // **** task interfaces.
-
-    // This class is used to create VxWorks tasks.
-
-    class Task : private Uncopyable {
-     private:
-	int id;
-
-	static void initTask(Task*);
-
-     protected:
-	virtual void taskEntry() = 0;
-
-	void delay(int) const;
-	void yieldCpu() const { delay(0); }
-
-     public:
-	Task();
-	virtual ~Task() NOTHROW;
-
-	bool isReady() const;
-	bool isSuspended() const;
-	bool isValid() const;
-	char const* name() const;
-
-	int priority() const;
-	void resume() const;
-	void suspend() const;
-
-	void run(char const*, unsigned char, int);
-    };
-
-    // Other prototypes...
-
-    int ms_to_tick(int);
 };
 
 #ifdef __BUILDING_VWPP
@@ -562,8 +564,6 @@ namespace vwpp {
 #include <vwpp_memory-2.7.h>
 #endif
 
-#elif __VWPP_VERSION != 0x207
-#error "Already included different vwpp.h"
 #endif
 
 // Local Variables:

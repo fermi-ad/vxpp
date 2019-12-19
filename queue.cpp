@@ -4,7 +4,7 @@
 #include <cassert>
 #include "./vwpp.h"
 
-using namespace vwpp;
+using namespace vwpp::v2_7;
 
 static void xlatErrno(int e)
 {

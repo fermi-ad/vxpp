@@ -3,7 +3,7 @@
 #include <semLib.h>
 #include "./vwpp.h"
 
-using namespace vwpp;
+using namespace vwpp::v2_7;
 
 Mutex::Mutex() :
     SemaphoreBase(::semMCreate(SEM_Q_PRIORITY | SEM_DELETE_SAFE |

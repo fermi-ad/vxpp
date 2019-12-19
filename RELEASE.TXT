@@ -10,7 +10,8 @@ Description
 
 Changes from 2.6:
 
-    - 
+    - Use C++ namespaces to enforce, at load time, that the correct version has
+      been loaded.
 
 System Preparation
 
