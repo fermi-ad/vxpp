@@ -10,8 +10,11 @@ Description
 
 Changes from 2.6:
 
-    - Use C++ namespaces to enforce, at load time, that the correct version has
-      been loaded.
+    - Use C++ namespaces to enforce, at load time, that the correct version
+      has been loaded.
+
+    - Improve the VME::Memory templates. The generated code now prevents
+      the compiler from optimizing across memory accesses.
 
 System Preparation
 
