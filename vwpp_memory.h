@@ -56,8 +56,11 @@ namespace vwpp {
 		RT get() const
 		{
 		    typedef typename Accessible<RT, 1, offset>::allowed type;
+		    RT volatile& tmp =
+			*reinterpret_cast<RT volatile*>(baseAddr + offset);
 
-		    return *reinterpret_cast<RT volatile*>(baseAddr + offset);
+		    asm volatile ("" ::: "memory");
+		    return tmp;
 		}
 
 		template <typename RT, size_t N, size_t offset>
@@ -65,18 +68,26 @@ namespace vwpp {
 		{
 		    typedef typename Accessible<RT, N, offset>::allowed type;
 
-		    if (LIKELY(index < N))
-			return reinterpret_cast<RT volatile*>(baseAddr + offset)[index];
-		    else
+		    if (LIKELY(index < N)) {
+			RT volatile &tmp =
+			    reinterpret_cast<RT volatile*>(baseAddr + offset)[index];
+
+			asm volatile ("" ::: "memory");
+			return tmp;
+		    } else
 			throw std::range_error("out of bounds array access");
 		}
 
 		template <typename RT>
 		RT get(size_t const offset) const
 		{
-		    if (LIKELY(offset + sizeof(RT) < size))
-			return *reinterpret_cast<RT volatile*>(baseAddr + offset);
-		    else
+		    if (LIKELY(offset + sizeof(RT) < size)) {
+			RT volatile& tmp =
+			    *reinterpret_cast<RT volatile*>(baseAddr + offset);
+
+			asm volatile ("" ::: "memory");
+			return tmp;
+		    } else
 			throw std::range_error("reading outside register bank");
 		}
 
@@ -86,14 +97,16 @@ namespace vwpp {
 		    typedef typename Accessible<RT, 1, offset>::allowed type;
 
 		    *reinterpret_cast<RT volatile*>(baseAddr + offset) = v;
+		    asm volatile ("" ::: "memory");
 		}
 
 		template <typename RT>
 		void set(size_t const offset, RT const v)
 		{
-		    if (LIKELY(offset + sizeof(RT) < size))
+		    if (LIKELY(offset + sizeof(RT) < size)) {
 			*reinterpret_cast<RT volatile*>(baseAddr + offset) = v;
-		    else
+			asm volatile ("" ::: "memory");
+		    } else
 			throw std::range_error("writing outside register bank");
 		}
 
@@ -102,9 +115,10 @@ namespace vwpp {
 		{
 		    typedef typename Accessible<RT, N, offset>::allowed type;
 
-		    if (LIKELY(index < N))
+		    if (LIKELY(index < N)) {
 			reinterpret_cast<RT volatile*>(baseAddr + offset)[index] = v;
-		    else
+			asm volatile ("" ::: "memory");
+		    } else
 			throw std::range_error("out of bounds array access");
 		}
 	    };
