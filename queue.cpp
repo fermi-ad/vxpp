@@ -6,6 +6,8 @@
 
 using namespace vwpp::v2_7;
 
+static void xlatErrno(int) __attribute__((shortcall));
+
 static void xlatErrno(int e)
 {
     switch (e) {
