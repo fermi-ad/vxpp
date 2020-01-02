@@ -84,6 +84,10 @@ bool EventBase::_wait(int tmo)
 
 #include <iostream>
 
+extern "C" {
+    STATUS vwppTestSemaphores();
+}
+
 // Regression test for semaphore support.
 
 Mutex a;
