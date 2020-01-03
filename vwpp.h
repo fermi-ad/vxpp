@@ -423,6 +423,8 @@ namespace vwpp {
 
 	 public:
 	    bool wait(int tmo = -1) { return _wait(tmo); }
+	    void wakeOne() NOTHROW { EventBase::wakeOne(); }
+	    void wakeAll() NOTHROW { EventBase::wakeAll(); }
 	};
 
 	// This Event type is used for an interrupt routine to signal
@@ -433,6 +435,8 @@ namespace vwpp {
 
 	 public:
 	    bool wait(IntLock&, int tmo = -1) { return _wait(tmo); }
+	    void wakeOne() NOTHROW { EventBase::wakeOne(); }
+	    void wakeAll() NOTHROW { EventBase::wakeAll(); }
 	};
 
 	// Non-POSIX implementation of conditional variables. This
