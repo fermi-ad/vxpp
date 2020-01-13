@@ -95,8 +95,11 @@ namespace vwpp {
 		void set(RT const v)
 		{
 		    typedef typename Accessible<RT, 1, offset>::allowed type;
+		    RT volatile* const ptr =
+			reinterpret_cast<RT volatile*>(baseAddr + offset);
 
-		    *reinterpret_cast<RT volatile*>(baseAddr + offset) = v;
+		    *ptr = v;
+		    *ptr;
 		    asm volatile ("" ::: "memory");
 		}
 
@@ -104,7 +107,11 @@ namespace vwpp {
 		void set(size_t const offset, RT const v)
 		{
 		    if (LIKELY(offset + sizeof(RT) < size)) {
-			*reinterpret_cast<RT volatile*>(baseAddr + offset) = v;
+			RT volatile* const ptr =
+			    reinterpret_cast<RT volatile*>(baseAddr + offset);
+
+			*ptr = v;
+			*ptr;
 			asm volatile ("" ::: "memory");
 		    } else
 			throw std::range_error("writing outside register bank");
@@ -116,7 +123,11 @@ namespace vwpp {
 		    typedef typename Accessible<RT, N, offset>::allowed type;
 
 		    if (LIKELY(index < N)) {
-			reinterpret_cast<RT volatile*>(baseAddr + offset)[index] = v;
+			RT volatile& entry =
+			    reinterpret_cast<RT volatile*>(baseAddr + offset)[index];
+
+			entry = v;
+			entry;
 			asm volatile ("" ::: "memory");
 		    } else
 			throw std::range_error("out of bounds array access");
