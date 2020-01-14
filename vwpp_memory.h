@@ -99,8 +99,19 @@ namespace vwpp {
 			reinterpret_cast<RT volatile*>(baseAddr + offset);
 
 		    *ptr = v;
-		    *ptr;
 		    asm volatile ("" ::: "memory");
+		}
+
+		template <typename RT, size_t offset>
+		void set_and_read(RT const v)
+		{
+		    typedef typename Accessible<RT, 1, offset>::allowed type;
+		    RT volatile* const ptr =
+			reinterpret_cast<RT volatile*>(baseAddr + offset);
+
+		    *ptr = v;
+		    *ptr;
+		    MEMORY_SYNC;
 		}
 
 		template <typename RT>
@@ -111,14 +122,42 @@ namespace vwpp {
 			    reinterpret_cast<RT volatile*>(baseAddr + offset);
 
 			*ptr = v;
-			*ptr;
 			asm volatile ("" ::: "memory");
 		    } else
 			throw std::range_error("writing outside register bank");
 		}
 
+		template <typename RT>
+		void set_and_read(size_t const offset, RT const v)
+		{
+		    if (LIKELY(offset + sizeof(RT) < size)) {
+			RT volatile* const ptr =
+			    reinterpret_cast<RT volatile*>(baseAddr + offset);
+
+			*ptr = v;
+			*ptr;
+			MEMORY_SYNC;
+		    } else
+			throw std::range_error("writing outside register bank");
+		}
+
 		template <typename RT, size_t N, size_t offset>
-		void setItem(size_t const index, RT const v)
+		void set_item(size_t const index, RT const v)
+		{
+		    typedef typename Accessible<RT, N, offset>::allowed type;
+
+		    if (LIKELY(index < N)) {
+			RT volatile& entry =
+			    reinterpret_cast<RT volatile*>(baseAddr + offset)[index];
+
+			entry = v;
+			asm volatile ("" ::: "memory");
+		    } else
+			throw std::range_error("out of bounds array access");
+		}
+
+		template <typename RT, size_t N, size_t offset>
+		void set_item_and_read(size_t const index, RT const v)
 		{
 		    typedef typename Accessible<RT, N, offset>::allowed type;
 
@@ -128,7 +167,7 @@ namespace vwpp {
 
 			entry = v;
 			entry;
-			asm volatile ("" ::: "memory");
+			MEMORY_SYNC;
 		    } else
 			throw std::range_error("out of bounds array access");
 		}
@@ -181,13 +220,25 @@ namespace vwpp {
 		void set(Lock const&, RT const v)
 		{ this->Base::template set<RT, offset>(v); }
 
+		template <typename RT, size_t offset>
+		void set_and_read(Lock const&, RT const v)
+		{ this->Base::template set_and_read<RT, offset>(v); }
+
 		template <typename RT>
 		void set(Lock const&, size_t const offset, RT const v)
 		{ this->Base::template set<RT>(offset, v); }
 
+		template <typename RT>
+		void set_and_read(Lock const&, size_t const offset, RT const v)
+		{ this->Base::template set_and_read<RT>(offset, v); }
+
 		template <typename RT, size_t N, size_t offset>
-		void setItem(Lock const&, size_t const index, RT const v)
-		{ this->Base::template setItem<RT, N, offset>(index, v); }
+		void set_item(Lock const&, size_t const index, RT const v)
+		{ this->Base::template set_item<RT, N, offset>(index, v); }
+
+		template <typename RT, size_t N, size_t offset>
+		void set_item_and_read(Lock const&, size_t const index, RT const v)
+		{ this->Base::template set_item_and_read<RT, N, offset>(index, v); }
 	    };
 	};
     };
