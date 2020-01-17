@@ -33,9 +33,9 @@
 // and instruction fetches until all previous activity is complete.
 
 #if defined(PPC603) || defined(PPC604) || defined(PPC750) || defined(PPC7400)
-#define	MEMORY_SYNC		asm volatile (" eieio" ::: "memory")
-#define	INSTRUCTION_SYNC	asm volatile (" isync" ::: "memory")
-#define	ALL_SYNC		asm volatile (" sync" ::: "memory")
+#define	MEMORY_SYNC		asm volatile ("eieio" ::: "memory")
+#define	INSTRUCTION_SYNC	asm volatile ("isync" ::: "memory")
+#define	ALL_SYNC		asm volatile ("sync" ::: "memory")
 #endif
 
 // These forward-declared structures and functions are found in
