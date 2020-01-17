@@ -12,7 +12,7 @@ HEADER_TARGETS = vwpp.h vwpp_types.h vwpp_memory.h
 MOD_TARGETS = vwpp.out
 LIB_TARGETS = libvwpp.a
 
-include $(PRODUCTS_INCDIR)frontend-2.9.mk
+include $(PRODUCTS_INCDIR)frontend-2.10.mk
 
 ADDED_C++FLAGS += -D__BUILDING_VWPP
 
