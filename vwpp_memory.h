@@ -92,7 +92,7 @@ namespace vwpp {
 		}
 
 		template <typename RT, size_t offset>
-		void set(RT const v)
+		void set(RT const v) const
 		{
 		    typedef typename Accessible<RT, 1, offset>::allowed type;
 		    RT volatile* const ptr =
@@ -103,7 +103,7 @@ namespace vwpp {
 		}
 
 		template <typename RT, size_t offset>
-		void set_and_read(RT const v)
+		void set_and_read(RT const v) const
 		{
 		    typedef typename Accessible<RT, 1, offset>::allowed type;
 		    RT volatile* const ptr =
@@ -115,7 +115,7 @@ namespace vwpp {
 		}
 
 		template <typename RT>
-		void set(size_t const offset, RT const v)
+		void set(size_t const offset, RT const v) const
 		{
 		    if (LIKELY(offset + sizeof(RT) < size)) {
 			RT volatile* const ptr =
@@ -128,7 +128,7 @@ namespace vwpp {
 		}
 
 		template <typename RT>
-		void set_and_read(size_t const offset, RT const v)
+		void set_and_read(size_t const offset, RT const v) const
 		{
 		    if (LIKELY(offset + sizeof(RT) < size)) {
 			RT volatile* const ptr =
@@ -142,7 +142,7 @@ namespace vwpp {
 		}
 
 		template <typename RT, size_t N, size_t offset>
-		void set_item(size_t const index, RT const v)
+		void set_item(size_t const index, RT const v) const
 		{
 		    typedef typename Accessible<RT, N, offset>::allowed type;
 
@@ -157,7 +157,7 @@ namespace vwpp {
 		}
 
 		template <typename RT, size_t N, size_t offset>
-		void set_item_and_read(size_t const index, RT const v)
+		void set_item_and_read(size_t const index, RT const v) const
 		{
 		    typedef typename Accessible<RT, N, offset>::allowed type;
 
@@ -217,27 +217,27 @@ namespace vwpp {
 		{ return this->Base::template get<RT>(offset); }
 
 		template <typename RT, size_t offset>
-		void set(Lock const&, RT const v)
+		void set(Lock const&, RT const v) const
 		{ this->Base::template set<RT, offset>(v); }
 
 		template <typename RT, size_t offset>
-		void set_and_read(Lock const&, RT const v)
+		void set_and_read(Lock const&, RT const v) const
 		{ this->Base::template set_and_read<RT, offset>(v); }
 
 		template <typename RT>
-		void set(Lock const&, size_t const offset, RT const v)
+		void set(Lock const&, size_t const offset, RT const v) const
 		{ this->Base::template set<RT>(offset, v); }
 
 		template <typename RT>
-		void set_and_read(Lock const&, size_t const offset, RT const v)
+		void set_and_read(Lock const&, size_t const offset, RT const v) const
 		{ this->Base::template set_and_read<RT>(offset, v); }
 
 		template <typename RT, size_t N, size_t offset>
-		void set_item(Lock const&, size_t const index, RT const v)
+		void set_item(Lock const&, size_t const index, RT const v) const
 		{ this->Base::template set_item<RT, N, offset>(index, v); }
 
 		template <typename RT, size_t N, size_t offset>
-		void set_item_and_read(Lock const&, size_t const index, RT const v)
+		void set_item_and_read(Lock const&, size_t const index, RT const v) const
 		{ this->Base::template set_item_and_read<RT, N, offset>(index, v); }
 	    };
 	};
