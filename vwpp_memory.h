@@ -13,6 +13,82 @@ namespace vwpp {
 
 	    char* calcBaseAddr(AddressSpace, uint32_t);
 
+	    enum ReadAccess { NoRead, Read };
+
+	    // This section declares a small API to read memory using
+	    // different access methods. These templates are used to
+	    // define the characteristics of hardware registers.
+
+	    template <typename T, size_t Offset, enum ReadAccess = NoRead>
+	    struct ReadAPI { };
+
+	    // Reads a value from "volatile" memory. We prevent the
+	    // compiler from optimizing around this call.
+
+	    template <typename T, size_t Offset>
+	    struct ReadAPI<T, Offset, Read> {
+		static T readMem(void volatile* const base)
+		{
+		    T volatile* const ptr =
+			reinterpret_cast<T volatile*>(reinterpret_cast<char volatile*>(base) + Offset);
+
+		    MEMORY_SYNC;
+		    return *ptr;
+		}
+	    };
+
+	    // This section declare a small API to write to memory.
+
+	    enum WriteAccess { NoWrite, Write, SyncWrite };
+
+	    template <typename T, size_t Offset, WriteAccess W = NoWrite>
+	    struct WriteAPI { };
+
+	    template <typename T, size_t Offset>
+	    struct WriteAPI<T, Offset, Write> {
+		static void writeMem(void volatile* const base, T const& v)
+		{
+		    T volatile* const ptr =
+			reinterpret_cast<T volatile*>(reinterpret_cast<char volatile*>(base) + Offset);
+
+		    MEMORY_SYNC;
+		    *ptr = v;
+		}
+	    };
+
+	    template <typename T, size_t Offset>
+	    struct WriteAPI<T, Offset, SyncWrite> {
+		static void writeMem(void volatile* const base, T const& v)
+		{
+		    T volatile* const ptr =
+			reinterpret_cast<T volatile*>(reinterpret_cast<char volatile*>(base) + Offset);
+
+		    MEMORY_SYNC;
+		    *ptr = v;
+		    *ptr;
+		    MEMORY_SYNC;
+		}
+	    };
+
+	    template <typename T, size_t Offset, bool R, WriteAccess W>
+	    struct Register {
+		typedef T Type;
+		typedef ReadAPI<T, Offset, R> ReadInterface;
+		typedef WriteAPI<T, Offset, W> WriteInterface;
+
+		enum { RegOffset = Offset };
+
+		static T read(void volatile* const base)
+		{
+		    return ReadInterface::readMem(base);
+		}
+
+		static void write(void volatile* const base, T const& v)
+		{
+		    WriteInterface::writeMem(base, v);
+		}
+	    };
+
 	    // This is the generalized template of a class that
 	    // controls access to VME memory space. It is given as a
 	    // forward declaration and gets defined later in the
@@ -50,126 +126,24 @@ namespace vwpp {
 		explicit Memory(uint32_t const offset) :
 		    baseAddr(calcBaseAddr(tag, offset)) {}
 
-		void* getBaseAddr() const { return baseAddr; }
+		void volatile* getBaseAddr() const { return baseAddr; }
 
-		template <typename RT, size_t offset>
-		RT get() const
+		template <typename R>
+		typename R::Type get() const
 		{
-		    typedef typename Accessible<RT, 1, offset>::allowed type;
-		    RT volatile& tmp =
-			*reinterpret_cast<RT volatile*>(baseAddr + offset);
+		    typedef typename Accessible<typename R::Type, 1,
+						R::RegOffset>::allowed type;
 
-		    asm volatile ("" ::: "memory");
-		    return tmp;
+		    return R::read(baseAddr);
 		}
 
-		template <typename RT, size_t N, size_t offset>
-		RT getItem(size_t const index) const
+		template <typename R>
+		void set(typename R::Type const& v) const
 		{
-		    typedef typename Accessible<RT, N, offset>::allowed type;
+		    typedef typename Accessible<typename R::Type, 1,
+						R::RegOffset>::allowed type;
 
-		    if (LIKELY(index < N)) {
-			RT volatile &tmp =
-			    reinterpret_cast<RT volatile*>(baseAddr + offset)[index];
-
-			asm volatile ("" ::: "memory");
-			return tmp;
-		    } else
-			throw std::range_error("out of bounds array access");
-		}
-
-		template <typename RT>
-		RT get(size_t const offset) const
-		{
-		    if (LIKELY(offset + sizeof(RT) < size)) {
-			RT volatile& tmp =
-			    *reinterpret_cast<RT volatile*>(baseAddr + offset);
-
-			asm volatile ("" ::: "memory");
-			return tmp;
-		    } else
-			throw std::range_error("reading outside register bank");
-		}
-
-		template <typename RT, size_t offset>
-		void set(RT const v) const
-		{
-		    typedef typename Accessible<RT, 1, offset>::allowed type;
-		    RT volatile* const ptr =
-			reinterpret_cast<RT volatile*>(baseAddr + offset);
-
-		    *ptr = v;
-		    asm volatile ("" ::: "memory");
-		}
-
-		template <typename RT, size_t offset>
-		void set_and_read(RT const v) const
-		{
-		    typedef typename Accessible<RT, 1, offset>::allowed type;
-		    RT volatile* const ptr =
-			reinterpret_cast<RT volatile*>(baseAddr + offset);
-
-		    *ptr = v;
-		    *ptr;
-		    MEMORY_SYNC;
-		}
-
-		template <typename RT>
-		void set(size_t const offset, RT const v) const
-		{
-		    if (LIKELY(offset + sizeof(RT) < size)) {
-			RT volatile* const ptr =
-			    reinterpret_cast<RT volatile*>(baseAddr + offset);
-
-			*ptr = v;
-			asm volatile ("" ::: "memory");
-		    } else
-			throw std::range_error("writing outside register bank");
-		}
-
-		template <typename RT>
-		void set_and_read(size_t const offset, RT const v) const
-		{
-		    if (LIKELY(offset + sizeof(RT) < size)) {
-			RT volatile* const ptr =
-			    reinterpret_cast<RT volatile*>(baseAddr + offset);
-
-			*ptr = v;
-			*ptr;
-			MEMORY_SYNC;
-		    } else
-			throw std::range_error("writing outside register bank");
-		}
-
-		template <typename RT, size_t N, size_t offset>
-		void set_item(size_t const index, RT const v) const
-		{
-		    typedef typename Accessible<RT, N, offset>::allowed type;
-
-		    if (LIKELY(index < N)) {
-			RT volatile& entry =
-			    reinterpret_cast<RT volatile*>(baseAddr + offset)[index];
-
-			entry = v;
-			asm volatile ("" ::: "memory");
-		    } else
-			throw std::range_error("out of bounds array access");
-		}
-
-		template <typename RT, size_t N, size_t offset>
-		void set_item_and_read(size_t const index, RT const v) const
-		{
-		    typedef typename Accessible<RT, N, offset>::allowed type;
-
-		    if (LIKELY(index < N)) {
-			RT volatile& entry =
-			    reinterpret_cast<RT volatile*>(baseAddr + offset)[index];
-
-			entry = v;
-			entry;
-			MEMORY_SYNC;
-		    } else
-			throw std::range_error("out of bounds array access");
+		    R::write(baseAddr, v);
 		}
 	    };
 
@@ -201,44 +175,16 @@ namespace vwpp {
 		    Base(o)
 		{}
 
-		void* getBaseAddr() const
+		void volatile* getBaseAddr() const
 		{ return Base::getBaseAddr(); }
 
-		template <typename RT, size_t offset>
-		RT get(Lock const&) const
-		{ return this->Base::template get<RT, offset>(); }
+		template <typename R>
+		typename R::Type get(Lock const&) const
+		{ return Base::template get<R>(); }
 
-		template <typename RT, size_t N, size_t offset>
-		RT getItem(Lock const&, size_t const index) const
-		{ return this->Base::template getItem<RT, offset>(index); }
-
-		template <typename RT>
-		RT get(Lock const&, size_t const offset) const
-		{ return this->Base::template get<RT>(offset); }
-
-		template <typename RT, size_t offset>
-		void set(Lock const&, RT const v) const
-		{ this->Base::template set<RT, offset>(v); }
-
-		template <typename RT, size_t offset>
-		void set_and_read(Lock const&, RT const v) const
-		{ this->Base::template set_and_read<RT, offset>(v); }
-
-		template <typename RT>
-		void set(Lock const&, size_t const offset, RT const v) const
-		{ this->Base::template set<RT>(offset, v); }
-
-		template <typename RT>
-		void set_and_read(Lock const&, size_t const offset, RT const v) const
-		{ this->Base::template set_and_read<RT>(offset, v); }
-
-		template <typename RT, size_t N, size_t offset>
-		void set_item(Lock const&, size_t const index, RT const v) const
-		{ this->Base::template set_item<RT, N, offset>(index, v); }
-
-		template <typename RT, size_t N, size_t offset>
-		void set_item_and_read(Lock const&, size_t const index, RT const v) const
-		{ this->Base::template set_item_and_read<RT, N, offset>(index, v); }
+		template <typename R>
+		void set(Lock const&, typename R::Type const& v) const
+		{ return Base::template set<R>(v); }
 	    };
 	};
     };
