@@ -76,7 +76,8 @@ namespace vwpp {
 			reinterpret_cast<T volatile*>(base + Offset);
 
 		    MEMORY_SYNC;
-		    *ptr = v;
+		    *ptr = (*ptr & ~mask) | (v & mask);
+		    asm volatile ("" ::: "memory");
 		}
 	    };
 
@@ -89,6 +90,18 @@ namespace vwpp {
 
 		    MEMORY_SYNC;
 		    *ptr = v;
+		    *ptr;
+		    MEMORY_SYNC;
+		}
+
+		static void writeMemField(uint8_t volatile* const base,
+					  T const& mask, T const& v)
+		{
+		    T volatile* const ptr =
+			reinterpret_cast<T volatile*>(base + Offset);
+
+		    MEMORY_SYNC;
+		    *ptr = (*ptr & ~mask) | (v & mask);
 		    *ptr;
 		    MEMORY_SYNC;
 		}
@@ -175,6 +188,31 @@ namespace vwpp {
 
 		    R::write(baseAddr, v);
 		}
+
+		template <typename R>
+		void set_field(typename R::Type const& mask,
+			       typename R::Type const& v) const
+		{
+		    typedef typename Accessible<typename R::AtomicType,
+						R::RegEntries,
+						R::RegOffset>::allowed type;
+
+		    R::writeField(baseAddr, mask, v);
+		}
+
+		template <typename T>
+		T unsafe_get(size_t const offset) const
+		{
+		    asm volatile ("" ::: "memory");
+		    return *getAddr<T>(offset);
+		}
+
+		template <typename T>
+		void unsafe_set(size_t const offset, T const& v) const
+		{
+		    asm volatile ("" ::: "memory");
+		    *getAddr<T>(offset) = v;
+		}
 	    };
 
 	    // This is the "fleshed-out", generalized version of the
@@ -215,7 +253,21 @@ namespace vwpp {
 
 		template <typename R>
 		void set(Lock const&, typename R::Type const& v) const
-		{ return Base::template set<R>(v); }
+		{ Base::template set<R>(v); }
+
+		template <typename R>
+		void set_field(Lock const&, typename R::Type const& mask,
+			       typename R::Type const& v) const
+		{ Base::template set_field<R>(mask, v); }
+
+		template <typename T>
+		T unsafe_get(Lock const&, size_t const offset) const
+		{ return Base::template unsafe_get<T>(offset); }
+
+		template <typename T>
+		void unsafe_set(Lock const&, size_t const offset,
+			     T const& v) const
+		{ Base::template unsafe_set<T>(offset, v); }
 	    };
 	};
     };
