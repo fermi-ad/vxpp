@@ -89,12 +89,17 @@ namespace vwpp {
 		}
 	    };
 
+	    enum DataAccess {
+		D8 = 1, D16, D8_D16, D32, D8_D32, D16_D32, D8_D16_D32
+	    };
+
 	    // This is the generalized template of a class that
 	    // controls access to VME memory space. It is given as a
 	    // forward declaration and gets defined later in the
 	    // header.
 
-	    template <AddressSpace tag, size_t size, typename LockType>
+	    template <AddressSpace tag, DataAccess DA, size_t size,
+		      typename LockType>
 	    class Memory;
 
 	    // This is a partially-specialized version where the lock
@@ -102,9 +107,9 @@ namespace vwpp {
 	    // lock parameter and requires an implementer to do
 	    // serialization at a higher level.
 
-	    template <AddressSpace tag, size_t size>
-	    class Memory<tag, size, void> {
-		char volatile* const baseAddr;
+	    template <AddressSpace tag, DataAccess DA, size_t size>
+	    class Memory<tag, DA, size, void> {
+		uint8_t volatile* const baseAddr;
 
 		// This template expands to a type that defines
 		// 'allowed' only if an offset into a VME::Memory
@@ -112,7 +117,8 @@ namespace vwpp {
 
 		template <typename RegType, size_t n, size_t offset,
 			  bool = (offset % sizeof(RegType) == 0 &&
-				  offset + sizeof(RegType) * n <= size)>
+				  offset + sizeof(RegType) * n <= size &&
+				  (DA & sizeof(RegType)) != 0)>
 		struct Accessible { };
 
 		template <typename RegType, size_t n, size_t offset>
@@ -151,12 +157,13 @@ namespace vwpp {
 	    // template. It requires a LockType to be given (and it
 	    // verifies the LockType is a valid type of lock.)
 
-	    template <AddressSpace tag, size_t size, typename LockType>
+	    template <AddressSpace tag, DataAccess DA, size_t size,
+		      typename LockType>
 	    class Memory :
-		protected Memory<tag, size, void>,
+		protected Memory<tag, DA, size, void>,
 		private vwpp::v2_7::Uncopyable
 	    {
-		typedef Memory<tag, size, void> Base;
+		typedef Memory<tag, DA, size, void> Base;
 
 		// Validate the lock type.
 
@@ -170,8 +177,8 @@ namespace vwpp {
 		// LockType. This is usually only necessary in
 		// constructors and destructors.
 
-		template <typename OldLockType>
-		Memory(Memory<tag, size, OldLockType> const& o) :
+		template <DataAccess ODA, typename OldLockType>
+		Memory(Memory<tag, ODA, size, OldLockType> const& o) :
 		    Base(o)
 		{}
 
