@@ -13,11 +13,12 @@ int ms_to_tick(int const v)
 	return (std::max(v, 0) * ::sysClkRateGet() + 999) / 1000;
 }
 
-char* VME::calcBaseAddr(VME::AddressSpace const tag, uint32_t const base)
+uint8_t* VME::calcBaseAddr(VME::AddressSpace const tag, uint32_t const base)
 {
     char* addr;
 
-    if (ERROR != sysBusToLocalAdrs(tag, reinterpret_cast<char*>(base), &addr))
-	return addr;
+    if (ERROR != sysBusToLocalAdrs(tag, reinterpret_cast<char*>(base),
+				   &addr))
+	return reinterpret_cast<uint8_t*>(addr);
     throw std::runtime_error("cannot localize address");
 }

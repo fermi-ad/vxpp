@@ -11,7 +11,7 @@ namespace vwpp {
 	namespace VME {
 	    enum AddressSpace { A16 = 0x29, A24 = 0x39, A32 = 0x09 };
 
-	    char* calcBaseAddr(AddressSpace, uint32_t);
+	    uint8_t* calcBaseAddr(AddressSpace, uint32_t);
 
 	    enum ReadAccess { NoRead, Read };
 
@@ -27,7 +27,7 @@ namespace vwpp {
 
 	    template <typename T, size_t Offset>
 	    struct ReadAPI<T, Offset, Read> {
-		static T readMem(void volatile* const base)
+		static T readMem(uint8_t volatile* const base)
 		{
 		    T volatile* const ptr =
 			reinterpret_cast<T volatile*>(reinterpret_cast<char volatile*>(base) + Offset);
@@ -46,10 +46,18 @@ namespace vwpp {
 
 	    template <typename T, size_t Offset>
 	    struct WriteAPI<T, Offset, Write> {
-		static void writeMem(void volatile* const base, T const& v)
+		static void writeMem(uint8_t volatile* const base, T const& v)
+		{
+		    MEMORY_SYNC;
+		    *reinterpret_cast<T volatile*>(base + Offset) = v;
+		    asm volatile ("" ::: "memory");
+		}
+
+		static void writeMemField(uint8_t volatile* const base,
+					  T const& mask, T const& v)
 		{
 		    T volatile* const ptr =
-			reinterpret_cast<T volatile*>(reinterpret_cast<char volatile*>(base) + Offset);
+			reinterpret_cast<T volatile*>(base + Offset);
 
 		    MEMORY_SYNC;
 		    *ptr = v;
@@ -58,10 +66,10 @@ namespace vwpp {
 
 	    template <typename T, size_t Offset>
 	    struct WriteAPI<T, Offset, SyncWrite> {
-		static void writeMem(void volatile* const base, T const& v)
+		static void writeMem(uint8_t volatile* const base, T const& v)
 		{
 		    T volatile* const ptr =
-			reinterpret_cast<T volatile*>(reinterpret_cast<char volatile*>(base) + Offset);
+			reinterpret_cast<T volatile*>(base + Offset);
 
 		    MEMORY_SYNC;
 		    *ptr = v;
