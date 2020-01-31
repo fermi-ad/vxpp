@@ -167,14 +167,18 @@ namespace vwpp {
 		struct Accessible<RegType, n, offset, true> {
 		    typedef Accessible allowed; };
 
+		template <typename T>
+		T volatile* getAddr(size_t const offset) const
+		{
+		    return reinterpret_cast<T volatile*>(baseAddr + offset);
+		}
+
 	     protected:
 		Memory(Memory const& o) : baseAddr(o.baseAddr) {}
 
 	     public:
 		explicit Memory(uint32_t const offset) :
 		    baseAddr(calcBaseAddr(tag, offset)) {}
-
-		void volatile* getBaseAddr() const { return baseAddr; }
 
 		template <typename R>
 		typename R::Type get() const
@@ -250,9 +254,6 @@ namespace vwpp {
 		Memory(Memory<tag, ODA, size, OldLockType> const& o) :
 		    Base(o)
 		{}
-
-		void volatile* getBaseAddr() const
-		{ return Base::getBaseAddr(); }
 
 		template <typename R>
 		typename R::Type get(Lock const&) const
