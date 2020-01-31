@@ -110,19 +110,24 @@ namespace vwpp {
 	    template <typename T, size_t Offset, ReadAccess R, WriteAccess W>
 	    struct Register {
 		typedef T Type;
-		typedef ReadAPI<T, Offset, R> ReadInterface;
-		typedef WriteAPI<T, Offset, W> WriteInterface;
+		typedef T AtomicType;
 
-		enum { RegOffset = Offset };
+		enum { RegOffset = Offset, RegEntries = 1 };
 
-		static T read(void volatile* const base)
+		static Type read(uint8_t volatile* const base)
 		{
-		    return ReadInterface::readMem(base);
+		    return ReadAPI<T, Offset, R>::readMem(base);
 		}
 
-		static void write(void volatile* const base, T const& v)
+		static void write(uint8_t volatile* const base, Type const& v)
 		{
-		    WriteInterface::writeMem(base, v);
+		    WriteAPI<T, Offset, W>::writeMem(base, v);
+		}
+
+		static void writeField(uint8_t volatile* const base,
+				       Type const& mask, Type const& v)
+		{
+		    WriteAPI<T, Offset, W>::writeMemField(base, mask, v);
 		}
 	    };
 
@@ -174,7 +179,8 @@ namespace vwpp {
 		template <typename R>
 		typename R::Type get() const
 		{
-		    typedef typename Accessible<typename R::Type, 1,
+		    typedef typename Accessible<typename R::AtomicType,
+						R::RegEntries,
 						R::RegOffset>::allowed type;
 
 		    return R::read(baseAddr);
@@ -183,7 +189,8 @@ namespace vwpp {
 		template <typename R>
 		void set(typename R::Type const& v) const
 		{
-		    typedef typename Accessible<typename R::Type, 1,
+		    typedef typename Accessible<typename R::AtomicType,
+						R::RegEntries,
 						R::RegOffset>::allowed type;
 
 		    R::write(baseAddr, v);
