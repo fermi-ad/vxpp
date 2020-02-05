@@ -90,8 +90,8 @@ namespace vwpp {
 
 		    memory_sync();
 		    *ptr = v;
-		    *ptr;
 		    memory_sync();
+		    *ptr;
 		}
 
 		static void writeMemField(uint8_t volatile* const base,
@@ -102,8 +102,8 @@ namespace vwpp {
 
 		    memory_sync();
 		    *ptr = (*ptr & ~mask) | (v & mask);
-		    *ptr;
 		    memory_sync();
+		    *ptr;
 		}
 	    };
 
