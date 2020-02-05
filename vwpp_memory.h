@@ -29,7 +29,7 @@ namespace vwpp {
 	    struct ReadAPI<T, Offset, Read> {
 		static T readMem(uint8_t volatile* const base)
 		{
-		    MEMORY_SYNC;
+		    VXPP_MEMORY_SYNC;
 
 		    T const val =
 			*reinterpret_cast<T volatile*>(base + Offset);
@@ -43,7 +43,7 @@ namespace vwpp {
 	    struct ReadAPI<T, Offset, SyncRead> {
 		static T readMem(uint8_t volatile* const base)
 		{
-		    INSTRUCTION_SYNC;
+		    VXPP_INSTRUCTION_SYNC;
 
 		    T const val =
 			*reinterpret_cast<T volatile*>(base + Offset);
@@ -64,7 +64,7 @@ namespace vwpp {
 	    struct WriteAPI<T, Offset, Write> {
 		static void writeMem(uint8_t volatile* const base, T const& v)
 		{
-		    MEMORY_SYNC;
+		    VXPP_MEMORY_SYNC;
 		    *reinterpret_cast<T volatile*>(base + Offset) = v;
 		    asm volatile ("" ::: "memory");
 		}
@@ -75,7 +75,7 @@ namespace vwpp {
 		    T volatile* const ptr =
 			reinterpret_cast<T volatile*>(base + Offset);
 
-		    MEMORY_SYNC;
+		    VXPP_MEMORY_SYNC;
 		    *ptr = (*ptr & ~mask) | (v & mask);
 		    asm volatile ("" ::: "memory");
 		}
@@ -88,10 +88,10 @@ namespace vwpp {
 		    T volatile* const ptr =
 			reinterpret_cast<T volatile*>(base + Offset);
 
-		    MEMORY_SYNC;
+		    VXPP_MEMORY_SYNC;
 		    *ptr = v;
 		    *ptr;
-		    MEMORY_SYNC;
+		    VXPP_MEMORY_SYNC;
 		}
 
 		static void writeMemField(uint8_t volatile* const base,
@@ -100,10 +100,10 @@ namespace vwpp {
 		    T volatile* const ptr =
 			reinterpret_cast<T volatile*>(base + Offset);
 
-		    MEMORY_SYNC;
+		    VXPP_MEMORY_SYNC;
 		    *ptr = (*ptr & ~mask) | (v & mask);
 		    *ptr;
-		    MEMORY_SYNC;
+		    VXPP_MEMORY_SYNC;
 		}
 	    };
 
