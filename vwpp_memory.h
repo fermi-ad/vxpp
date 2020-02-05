@@ -29,12 +29,12 @@ namespace vwpp {
 	    struct ReadAPI<T, Offset, Read> {
 		static T readMem(uint8_t volatile* const base)
 		{
-		    VXPP_MEMORY_SYNC;
+		    memory_sync();
 
 		    T const val =
 			*reinterpret_cast<T volatile*>(base + Offset);
 
-		    asm volatile ("" ::: "memory");
+		    optimizer_barrier();
 		    return val;
 		}
 	    };
@@ -43,12 +43,12 @@ namespace vwpp {
 	    struct ReadAPI<T, Offset, SyncRead> {
 		static T readMem(uint8_t volatile* const base)
 		{
-		    VXPP_INSTRUCTION_SYNC;
+		    instruction_sync();
 
 		    T const val =
 			*reinterpret_cast<T volatile*>(base + Offset);
 
-		    asm volatile ("" ::: "memory");
+		    optimizer_barrier();
 		    return val;
 		}
 	    };
@@ -64,9 +64,9 @@ namespace vwpp {
 	    struct WriteAPI<T, Offset, Write> {
 		static void writeMem(uint8_t volatile* const base, T const& v)
 		{
-		    VXPP_MEMORY_SYNC;
+		    memory_sync();
 		    *reinterpret_cast<T volatile*>(base + Offset) = v;
-		    asm volatile ("" ::: "memory");
+		    optimizer_barrier();
 		}
 
 		static void writeMemField(uint8_t volatile* const base,
@@ -75,9 +75,9 @@ namespace vwpp {
 		    T volatile* const ptr =
 			reinterpret_cast<T volatile*>(base + Offset);
 
-		    VXPP_MEMORY_SYNC;
+		    memory_sync();
 		    *ptr = (*ptr & ~mask) | (v & mask);
-		    asm volatile ("" ::: "memory");
+		    optimizer_barrier();
 		}
 	    };
 
@@ -88,10 +88,10 @@ namespace vwpp {
 		    T volatile* const ptr =
 			reinterpret_cast<T volatile*>(base + Offset);
 
-		    VXPP_MEMORY_SYNC;
+		    memory_sync();
 		    *ptr = v;
 		    *ptr;
-		    VXPP_MEMORY_SYNC;
+		    memory_sync();
 		}
 
 		static void writeMemField(uint8_t volatile* const base,
@@ -100,10 +100,10 @@ namespace vwpp {
 		    T volatile* const ptr =
 			reinterpret_cast<T volatile*>(base + Offset);
 
-		    VXPP_MEMORY_SYNC;
+		    memory_sync();
 		    *ptr = (*ptr & ~mask) | (v & mask);
 		    *ptr;
-		    VXPP_MEMORY_SYNC;
+		    memory_sync();
 		}
 	    };
 
@@ -216,7 +216,7 @@ namespace vwpp {
 		{
 		    typedef typename Accessible<T, 1, 0>::allowed type;
 
-		    asm volatile ("" ::: "memory");
+		    optimizer_barrier();
 		    return *getAddr<T>(offset);
 		}
 
@@ -225,7 +225,7 @@ namespace vwpp {
 		{
 		    typedef typename Accessible<T, 1, 0>::allowed type;
 
-		    asm volatile ("" ::: "memory");
+		    optimizer_barrier();
 		    *getAddr<T>(offset) = v;
 		}
 	    };

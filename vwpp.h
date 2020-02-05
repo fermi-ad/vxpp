@@ -36,6 +36,15 @@
 #define	VXPP_MEMORY_SYNC	asm volatile ("eieio" ::: "memory")
 #define	VXPP_INSTRUCTION_SYNC	asm volatile ("isync" ::: "memory")
 #define	VXPP_ALL_SYNC		asm volatile ("sync" ::: "memory")
+
+namespace vwpp {
+    namespace v2_7 {
+	inline void memory_sync() { asm volatile ("eieio" ::: "memory"); }
+	inline void instruction_sync() { asm volatile ("isync" ::: "memory"); }
+	inline void global_sync() { asm volatile ("sync" ::: "memory"); }
+	inline void optimizer_barrier() { asm volatile ("" ::: "memory"); }
+    };
+};
 #endif
 
 // These forward-declared structures and functions are found in
