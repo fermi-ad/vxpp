@@ -214,6 +214,8 @@ namespace vwpp {
 		template <typename T>
 		T unsafe_get(size_t const offset) const
 		{
+		    typedef typename Accessible<T, 1, 0>::allowed type;
+
 		    asm volatile ("" ::: "memory");
 		    return *getAddr<T>(offset);
 		}
@@ -221,6 +223,8 @@ namespace vwpp {
 		template <typename T>
 		void unsafe_set(size_t const offset, T const& v) const
 		{
+		    typedef typename Accessible<T, 1, 0>::allowed type;
+
 		    asm volatile ("" ::: "memory");
 		    *getAddr<T>(offset) = v;
 		}
