@@ -27,12 +27,13 @@ namespace vwpp {
 
 	    template <typename T, size_t Offset>
 	    struct ReadAPI<T, Offset, Read> {
-		static T readMem(uint8_t volatile* const base)
+		static T readMem(uint8_t volatile* const base,
+				 size_t const idx)
 		{
 		    memory_sync();
 
 		    T const val =
-			*reinterpret_cast<T volatile*>(base + Offset);
+			*reinterpret_cast<T volatile*>(base + Offset) + idx;
 
 		    optimizer_barrier();
 		    return val;
@@ -41,12 +42,13 @@ namespace vwpp {
 
 	    template <typename T, size_t Offset>
 	    struct ReadAPI<T, Offset, SyncRead> {
-		static T readMem(uint8_t volatile* const base)
+		static T readMem(uint8_t volatile* const base,
+				 size_t const idx)
 		{
 		    instruction_sync();
 
 		    T const val =
-			*reinterpret_cast<T volatile*>(base + Offset);
+			*reinterpret_cast<T volatile*>(base + Offset) + idx;
 
 		    optimizer_barrier();
 		    return val;
@@ -62,18 +64,20 @@ namespace vwpp {
 
 	    template <typename T, size_t Offset>
 	    struct WriteAPI<T, Offset, Write> {
-		static void writeMem(uint8_t volatile* const base, T const& v)
+		static void writeMem(uint8_t volatile* const base,
+				     size_t const idx, T const& v)
 		{
 		    memory_sync();
-		    *reinterpret_cast<T volatile*>(base + Offset) = v;
+		    *(reinterpret_cast<T volatile*>(base + Offset) + idx) = v;
 		    optimizer_barrier();
 		}
 
 		static void writeMemField(uint8_t volatile* const base,
-					  T const& mask, T const& v)
+					  size_t const idx, T const& mask,
+					  T const& v)
 		{
 		    T volatile* const ptr =
-			reinterpret_cast<T volatile*>(base + Offset);
+			reinterpret_cast<T volatile*>(base + Offset) + idx;
 
 		    memory_sync();
 		    *ptr = (*ptr & ~mask) | (v & mask);
@@ -83,10 +87,11 @@ namespace vwpp {
 
 	    template <typename T, size_t Offset>
 	    struct WriteAPI<T, Offset, SyncWrite> {
-		static void writeMem(uint8_t volatile* const base, T const& v)
+		static void writeMem(uint8_t volatile* const base,
+				     size_t const idx, T const& v)
 		{
 		    T volatile* const ptr =
-			reinterpret_cast<T volatile*>(base + Offset);
+			reinterpret_cast<T volatile*>(base + Offset) + idx;
 
 		    memory_sync();
 		    *ptr = v;
@@ -95,10 +100,11 @@ namespace vwpp {
 		}
 
 		static void writeMemField(uint8_t volatile* const base,
-					  T const& mask, T const& v)
+					  size_t const idx, T const& mask,
+					  T const& v)
 		{
 		    T volatile* const ptr =
-			reinterpret_cast<T volatile*>(base + Offset);
+			reinterpret_cast<T volatile*>(base + Offset) + idx;
 
 		    memory_sync();
 		    *ptr = (*ptr & ~mask) | (v & mask);
@@ -116,18 +122,46 @@ namespace vwpp {
 
 		static Type read(uint8_t volatile* const base)
 		{
-		    return ReadAPI<T, Offset, R>::readMem(base);
+		    return ReadAPI<T, Offset, R>::readMem(base, 0);
 		}
 
 		static void write(uint8_t volatile* const base, Type const& v)
 		{
-		    WriteAPI<T, Offset, W>::writeMem(base, v);
+		    WriteAPI<T, Offset, W>::writeMem(base, 0, v);
 		}
 
 		static void writeField(uint8_t volatile* const base,
 				       Type const& mask, Type const& v)
 		{
-		    WriteAPI<T, Offset, W>::writeMemField(base, mask, v);
+		    WriteAPI<T, Offset, W>::writeMemField(base, 0, mask, v);
+		}
+	    };
+
+	    template <typename T, size_t N, size_t Offset, ReadAccess R,
+		      WriteAccess W>
+	    struct Register<T[N], Offset, R, W> {
+		typedef T Type;
+		typedef T AtomicType;
+
+		enum { RegOffset = Offset, RegEntries = N };
+
+		static Type read(uint8_t volatile* const base,
+				 size_t const idx)
+		{
+		    return ReadAPI<T, Offset, R>::readMem(base, idx);
+		}
+
+		static void write(uint8_t volatile* const base,
+				  size_t const idx, Type const& v)
+		{
+		    WriteAPI<T, Offset, W>::writeMem(base, idx, v);
+		}
+
+		static void writeField(uint8_t volatile* const base,
+				       size_t const idx, Type const& mask,
+				       Type const& v)
+		{
+		    WriteAPI<T, Offset, W>::writeMemField(base, idx, mask, v);
 		}
 	    };
 
@@ -165,7 +199,12 @@ namespace vwpp {
 
 		template <typename RegType, size_t n, size_t offset>
 		struct Accessible<RegType, n, offset, true> {
-		    typedef Accessible allowed; };
+		    typedef Accessible allowed;
+
+		    static bool in_range(size_t const idx) {
+			return idx < n;
+		    }
+		};
 
 		template <typename T>
 		T volatile* getAddr(size_t const offset) const
@@ -191,6 +230,19 @@ namespace vwpp {
 		}
 
 		template <typename R>
+		typename R::Type get_element(size_t const idx) const
+		{
+		    typedef typename Accessible<typename R::AtomicType,
+						R::RegEntries,
+						R::RegOffset>::allowed type;
+
+		    if (type::in_range(idx))
+			return R::read(baseAddr, idx);
+		    else
+			throw std::runtime_error("index out of range");
+		}
+
+		template <typename R>
 		void set(typename R::Type const& v) const
 		{
 		    typedef typename Accessible<typename R::AtomicType,
@@ -198,6 +250,20 @@ namespace vwpp {
 						R::RegOffset>::allowed type;
 
 		    R::write(baseAddr, v);
+		}
+
+		template <typename R>
+		void set_element(typename R::Type const& v,
+				 size_t const idx) const
+		{
+		    typedef typename Accessible<typename R::AtomicType,
+						R::RegEntries,
+						R::RegOffset>::allowed type;
+
+		    if (type::in_range(idx))
+			R::write(baseAddr, idx, v);
+		    else
+			throw std::runtime_error("index out of range");
 		}
 
 		template <typename R>
@@ -264,8 +330,18 @@ namespace vwpp {
 		{ return Base::template get<R>(); }
 
 		template <typename R>
+		typename R::Type get_element(Lock const&,
+					     size_t const idx) const
+		{ return Base::template get_element<R>(idx); }
+
+		template <typename R>
 		void set(Lock const&, typename R::Type const& v) const
 		{ Base::template set<R>(v); }
+
+		template <typename R>
+		void set_element(Lock const&, size_t const idx,
+				 typename R::Type const& v) const
+		{ Base::template set_element<R>(idx, v); }
 
 		template <typename R>
 		void set_field(Lock const&, typename R::Type const& mask,
