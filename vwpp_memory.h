@@ -13,7 +13,7 @@ namespace vwpp {
 
 	    uint8_t* calcBaseAddr(AddressSpace, uint32_t);
 
-	    enum ReadAccess { NoRead, Read, SyncRead };
+	    enum ReadAccess { NoRead, Read, DestructiveRead };
 
 	    // This section declares a small API to read memory using
 	    // different access methods. These templates are used to
@@ -41,7 +41,7 @@ namespace vwpp {
 	    };
 
 	    template <typename T, size_t Offset>
-	    struct ReadAPI<T, Offset, SyncRead> {
+	    struct ReadAPI<T, Offset, DestructiveRead> {
 		static T readMem(uint8_t volatile* const base,
 				 size_t const idx)
 		{
@@ -57,7 +57,7 @@ namespace vwpp {
 
 	    // This section declare a small API to write to memory.
 
-	    enum WriteAccess { NoWrite, Write, SyncWrite };
+	    enum WriteAccess { NoWrite, Write, ConfirmWrite };
 
 	    template <typename T, size_t Offset, WriteAccess W = NoWrite>
 	    struct WriteAPI { };
@@ -86,7 +86,7 @@ namespace vwpp {
 	    };
 
 	    template <typename T, size_t Offset>
-	    struct WriteAPI<T, Offset, SyncWrite> {
+	    struct WriteAPI<T, Offset, ConfirmWrite> {
 		static void writeMem(uint8_t volatile* const base,
 				     size_t const idx, T const& v)
 		{
