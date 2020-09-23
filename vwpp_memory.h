@@ -129,6 +129,28 @@ namespace vwpp {
 		{
 		    WriteAPI<T, Offset, W>::writeMem(base, 0, v);
 		}
+	    };
+
+	    // This specialization allows registers with
+	    // non-destructive reads to participate in read-and-set
+	    // operations.
+
+	    template <typename T, size_t Offset, WriteAccess W>
+	    struct Register<T, Offset, Read, W> {
+		typedef T Type;
+		typedef T AtomicType;
+
+		enum { RegOffset = Offset, RegEntries = 1 };
+
+		static Type read(uint8_t volatile* const base)
+		{
+		    return ReadAPI<T, Offset, R>::readMem(base, 0);
+		}
+
+		static void write(uint8_t volatile* const base, Type const& v)
+		{
+		    WriteAPI<T, Offset, W>::writeMem(base, 0, v);
+		}
 
 		static void writeField(uint8_t volatile* const base,
 				       Type const& mask, Type const& v)
