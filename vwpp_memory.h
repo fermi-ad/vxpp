@@ -357,6 +357,15 @@ namespace vwpp {
 			     T const& v) const
 		{ Base::template unsafe_set<T>(offset, v); }
 	    };
+
+	    template <typename LockType>
+	    struct IndustryPack : public Memory<A16, D8_D16, 0x100, LockType> {
+		typedef Memory<A16, D8_D16, 0x100, LockType> MemType;
+
+		operator MemType& () { return *this; }
+
+		IndustryPack(uint16_t offset) : MemType(offset) {}
+	    };
 	};
     };
 };
