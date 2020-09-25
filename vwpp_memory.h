@@ -13,7 +13,7 @@ namespace vwpp {
 
 	    uint8_t* calcBaseAddr(AddressSpace, uint32_t);
 
-	    enum ReadAccess { NoRead, Read, SyncRead };
+	    enum ReadAccess { NoRead, Read, DestructiveRead };
 
 	    // This section declares a small API to read memory using
 	    // different access methods. These templates are used to
@@ -41,7 +41,7 @@ namespace vwpp {
 	    };
 
 	    template <typename T, size_t Offset>
-	    struct ReadAPI<T, Offset, SyncRead> {
+	    struct ReadAPI<T, Offset, DestructiveRead> {
 		static T readMem(uint8_t volatile* const base,
 				 size_t const idx)
 		{
@@ -57,7 +57,7 @@ namespace vwpp {
 
 	    // This section declare a small API to write to memory.
 
-	    enum WriteAccess { NoWrite, Write, SyncWrite };
+	    enum WriteAccess { NoWrite, Write, ConfirmWrite };
 
 	    template <typename T, size_t Offset, WriteAccess W = NoWrite>
 	    struct WriteAPI { };
@@ -86,7 +86,7 @@ namespace vwpp {
 	    };
 
 	    template <typename T, size_t Offset>
-	    struct WriteAPI<T, Offset, SyncWrite> {
+	    struct WriteAPI<T, Offset, ConfirmWrite> {
 		static void writeMem(uint8_t volatile* const base,
 				     size_t const idx, T const& v)
 		{
@@ -115,6 +115,28 @@ namespace vwpp {
 
 	    template <typename T, size_t Offset, ReadAccess R, WriteAccess W>
 	    struct Register {
+		typedef T Type;
+		typedef T AtomicType;
+
+		enum { RegOffset = Offset, RegEntries = 1 };
+
+		static Type read(uint8_t volatile* const base)
+		{
+		    return ReadAPI<T, Offset, R>::readMem(base, 0);
+		}
+
+		static void write(uint8_t volatile* const base, Type const& v)
+		{
+		    WriteAPI<T, Offset, W>::writeMem(base, 0, v);
+		}
+	    };
+
+	    // This specialization allows registers with
+	    // non-destructive reads to participate in read-and-set
+	    // operations.
+
+	    template <typename T, size_t Offset, WriteAccess W>
+	    struct Register<T, Offset, Read, W> {
 		typedef T Type;
 		typedef T AtomicType;
 
