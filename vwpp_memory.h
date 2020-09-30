@@ -59,7 +59,7 @@ namespace vwpp {
 
 	    enum WriteAccess { NoWrite, Write, ConfirmWrite };
 
-	    template <typename T, size_t Offset, WriteAccess W = NoWrite>
+	    template <typename T, size_t Offset, enum WriteAccess = NoWrite>
 	    struct WriteAPI { };
 
 	    template <typename T, size_t Offset>
@@ -69,18 +69,6 @@ namespace vwpp {
 		{
 		    memory_sync();
 		    *(reinterpret_cast<T volatile*>(base + Offset) + idx) = v;
-		    optimizer_barrier();
-		}
-
-		static void writeMemField(uint8_t volatile* const base,
-					  size_t const idx, T const& mask,
-					  T const& v)
-		{
-		    T volatile* const ptr =
-			reinterpret_cast<T volatile*>(base + Offset) + idx;
-
-		    memory_sync();
-		    *ptr = (*ptr & ~mask) | (v & mask);
 		    optimizer_barrier();
 		}
 	    };
@@ -98,10 +86,32 @@ namespace vwpp {
 		    memory_sync();
 		    *ptr;
 		}
+	    };
 
-		static void writeMemField(uint8_t volatile* const base,
-					  size_t const idx, T const& mask,
-					  T const& v)
+	    template <typename T, size_t Offset, ReadAccess R,
+		      WriteAccess W = NoWrite>
+	    struct RWAPI { };
+
+	    template <typename T, size_t Offset>
+	    struct RWAPI<T, Offset, Read, Write> {
+		static void chgField(uint8_t volatile* const base,
+				     size_t const idx, T const& mask,
+				     T const& v)
+		{
+		    T volatile* const ptr =
+			reinterpret_cast<T volatile*>(base + Offset) + idx;
+
+		    memory_sync();
+		    *ptr = (*ptr & ~mask) | (v & mask);
+		    optimizer_barrier();
+		}
+	    };
+
+	    template <typename T, size_t Offset>
+	    struct RWAPI<T, Offset, Read, ConfirmWrite> {
+		static void chgField(uint8_t volatile* const base,
+				     size_t const idx, T const& mask,
+				     T const& v)
 		{
 		    T volatile* const ptr =
 			reinterpret_cast<T volatile*>(base + Offset) + idx;
@@ -129,33 +139,11 @@ namespace vwpp {
 		{
 		    WriteAPI<T, Offset, W>::writeMem(base, 0, v);
 		}
-	    };
-
-	    // This specialization allows registers with
-	    // non-destructive reads to participate in read-and-set
-	    // operations.
-
-	    template <typename T, size_t Offset, WriteAccess W>
-	    struct Register<T, Offset, Read, W> {
-		typedef T Type;
-		typedef T AtomicType;
-
-		enum { RegOffset = Offset, RegEntries = 1 };
-
-		static Type read(uint8_t volatile* const base)
-		{
-		    return ReadAPI<T, Offset, R>::readMem(base, 0);
-		}
-
-		static void write(uint8_t volatile* const base, Type const& v)
-		{
-		    WriteAPI<T, Offset, W>::writeMem(base, 0, v);
-		}
 
 		static void writeField(uint8_t volatile* const base,
 				       Type const& mask, Type const& v)
 		{
-		    WriteAPI<T, Offset, W>::writeMemField(base, 0, mask, v);
+		    RWAPI<T, Offset, R, W>::chgField(base, 0, mask, v);
 		}
 	    };
 
@@ -183,7 +171,7 @@ namespace vwpp {
 				       size_t const idx, Type const& mask,
 				       Type const& v)
 		{
-		    WriteAPI<T, Offset, W>::writeMemField(base, idx, mask, v);
+		    RWAPI<T, Offset, R, W>::writeMemField(base, idx, mask, v);
 		}
 	    };
 
