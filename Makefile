@@ -3,16 +3,16 @@
 #       used in all the header files.
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-VID = 2.7
+VID = 3.0
 PRODUCT = 1
 
-SUPPORTED_VERSIONS = 64 67
+SUPPORTED_VERSIONS = 64 69
 
 HEADER_TARGETS = vwpp.h vwpp_types.h vwpp_memory.h
 MOD_TARGETS = vwpp.out
 LIB_TARGETS = libvwpp.a
 
-include $(PRODUCTS_INCDIR)frontend-2.10.mk
+include $(PRODUCTS_INCDIR)frontend-3.0.mk
 
 ADDED_C++FLAGS += -D__BUILDING_VWPP
 
