@@ -7,8 +7,8 @@ using namespace vwpp::v2_7;
 
 int ms_to_tick(int const v)
 {
-    if (v == WAIT_FOREVER)
-	return WAIT_FOREVER;
+    if (v == (int) WAIT_FOREVER)
+	return (int) WAIT_FOREVER;
     else
 	return (std::max(v, 0) * ::sysClkRateGet() + 999) / 1000;
 }
