@@ -27,7 +27,7 @@
 #endif
 
 namespace vwpp {
-    namespace v2_7 {
+    namespace v3_0 {
 
 	// Any class derived from Uncopyable will cause a compile-time
 	// error if the code tries to copy an instance the class. Even

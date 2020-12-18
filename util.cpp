@@ -3,7 +3,7 @@
 #include <algorithm>
 #include "./vwpp.h"
 
-using namespace vwpp::v2_7;
+using namespace vwpp::v3_0;
 
 int ms_to_tick(int const v)
 {

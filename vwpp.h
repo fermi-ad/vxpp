@@ -38,7 +38,7 @@
 #define	VXPP_ALL_SYNC		asm volatile ("sync" ::: "memory")
 
 namespace vwpp {
-    namespace v2_7 {
+    namespace v3_0 {
 	inline void memory_sync() { asm volatile ("eieio" ::: "memory"); }
 	inline void instruction_sync() { asm volatile ("isync" ::: "memory"); }
 	inline void global_sync() { asm volatile ("sync" ::: "memory"); }
@@ -108,7 +108,7 @@ extern "C" {
 // All identifiers of this module are located in the vwpp name space.
 
 namespace vwpp {
-    namespace v2_7 {
+    namespace v3_0 {
 
 	class timeout_error : public std::runtime_error {
 	 public:

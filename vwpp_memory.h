@@ -2,7 +2,7 @@
 #define __VWPP_MEMORY_H
 
 namespace vwpp {
-    namespace v2_7 {
+    namespace v3_0 {
 
 	// This name space defines an API to access VME entities:
 	//
@@ -314,7 +314,7 @@ namespace vwpp {
 		      typename LockType>
 	    class Memory :
 		protected Memory<tag, DA, size, void>,
-		private vwpp::v2_7::Uncopyable
+		private vwpp::v3_0::Uncopyable
 	    {
 		typedef Memory<tag, DA, size, void> Base;
 
