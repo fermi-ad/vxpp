@@ -15,7 +15,7 @@
 #ifdef __BUILDING_VWPP
 #include "./vwpp_types.h"
 #else
-#include <vwpp_types-2.7.h>
+#include <vwpp_types-3.0.h>
 #endif
 
 // These macros emit assembly instructions which implement "barriers"
@@ -574,7 +574,7 @@ namespace vwpp {
 #ifdef __BUILDING_VWPP
 #include "./vwpp_memory.h"
 #else
-#include <vwpp_memory-2.7.h>
+#include <vwpp_memory-3.0.h>
 #endif
 
 #endif
