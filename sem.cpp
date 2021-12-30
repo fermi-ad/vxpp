@@ -11,14 +11,6 @@ Mutex::Mutex() :
 {
 }
 
-// CountingSemaphore constructor -- Pass the SEM_ID of a counting
-// semaphore to the base class.
-
-CountingSemaphore::CountingSemaphore(int initialCount) :
-    SemaphoreBase(::semCCreate(SEM_Q_PRIORITY, initialCount))
-{
-}
-
 void SemaphoreBase::acquire(int tmo)
 {
     if (UNLIKELY(ERROR == ::semTake(res, ms_to_tick(tmo))))
