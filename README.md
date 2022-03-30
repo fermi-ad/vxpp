@@ -10,7 +10,7 @@ VWPP is a C++ library that wraps VxWorks concurrency primitives with type- and e
 
 ## System Preparation
 
-VWPP has been built for every supported target under VxWorks 6.4 and 6.7. If you run across any incompatibilities, please let us know. The project is being managed under Redmine (https://cdcvs.fnal.gov/redmine/projects/vxpp). You can report problems using the issue tracker.
+VWPP has been built for every supported target under VxWorks 6.4 and 6.7. If you run across any incompatibilities, please let us know. You can report problems using the issue tracker.
 
 ### Location
 
