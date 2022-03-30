@@ -1,6 +1,6 @@
 # VXPP
 
-VWPP is a C++ library that wraps VxWorks concurrency primitives with type- and exception-safe objects. These classes manage resources using modern C++ idioms. This library is documented at https://cdcvs.fnal.gov/redmine/projects/vxpp/wiki.
+VWPP is a C++ library that wraps VxWorks concurrency primitives with type- and exception-safe objects. These classes manage resources using modern C++ idioms. This library is documented in its GitHub Wiki.
 
 ## Changes from 2.6:
 
