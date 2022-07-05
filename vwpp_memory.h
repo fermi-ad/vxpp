@@ -9,7 +9,9 @@ namespace vwpp {
 	//  * Serialized access to A16/A24/A32 spaces.
 
 	namespace VME {
-	    enum AddressSpace { A16 = 0x29, A24 = 0x39, A32 = 0x09 };
+	    enum AddressSpace {
+		Unknown = 0x0, A16 = 0x29, A24 = 0x39, A32 = 0x09
+	    };
 
 	    uint8_t* calcBaseAddr(AddressSpace, uint32_t);
 
@@ -123,12 +125,12 @@ namespace vwpp {
 		}
 	    };
 
-	    template <typename T, size_t Offset, ReadAccess R, WriteAccess W>
+	    template <AddressSpace Space, typename T, size_t Offset, ReadAccess R, WriteAccess W>
 	    struct Register {
 		typedef T Type;
 		typedef T AtomicType;
 
-		enum { RegOffset = Offset, RegEntries = 1 };
+		enum { AddrSpace = Space, RegOffset = Offset, RegEntries = 1 };
 
 		static Type read(uint8_t volatile* const base)
 		{
@@ -147,13 +149,13 @@ namespace vwpp {
 		}
 	    };
 
-	    template <typename T, size_t N, size_t Offset, ReadAccess R,
+	    template <AddressSpace Space, typename T, size_t N, size_t Offset, ReadAccess R,
 		      WriteAccess W>
-	    struct Register<T[N], Offset, R, W> {
+	    struct Register<Space, T[N], Offset, R, W> {
 		typedef T Type;
 		typedef T AtomicType;
 
-		enum { RegOffset = Offset, RegEntries = N };
+		enum { AddrSpace = Space, RegOffset = Offset, RegEntries = N };
 
 		static Type read(uint8_t volatile* const base,
 				 size_t const idx)
@@ -201,14 +203,17 @@ namespace vwpp {
 		// 'allowed' only if an offset into a VME::Memory
 		// register bank is accessible.
 
-		template <typename RegType, size_t n, size_t offset,
-			  bool = (offset % sizeof(RegType) == 0 &&
+		template <AddressSpace Space, typename RegType, size_t n,
+			  size_t offset,
+			  bool = (Space == tag &&
+				  offset % sizeof(RegType) == 0 &&
 				  offset + sizeof(RegType) * n <= size &&
 				  (DA & sizeof(RegType)) != 0)>
 		struct Accessible { };
 
-		template <typename RegType, size_t n, size_t offset>
-		struct Accessible<RegType, n, offset, true> {
+		template <AddressSpace Space, typename RegType, size_t n,
+			  size_t offset>
+		struct Accessible<Space, RegType, n, offset, true> {
 		    typedef Accessible allowed;
 
 		    static bool in_range(size_t const idx) {
@@ -232,7 +237,8 @@ namespace vwpp {
 		template <typename R>
 		typename R::Type get() const
 		{
-		    typedef typename Accessible<typename R::AtomicType,
+		    typedef typename Accessible<R::AddrSpace,
+						typename R::AtomicType,
 						R::RegEntries,
 						R::RegOffset>::allowed type;
 
@@ -242,7 +248,8 @@ namespace vwpp {
 		template <typename R>
 		typename R::Type get_element(size_t const idx) const
 		{
-		    typedef typename Accessible<typename R::AtomicType,
+		    typedef typename Accessible<R::AddrSpace,
+						typename R::AtomicType,
 						R::RegEntries,
 						R::RegOffset>::allowed type;
 
@@ -255,7 +262,8 @@ namespace vwpp {
 		template <typename R>
 		void set(typename R::Type const& v) const
 		{
-		    typedef typename Accessible<typename R::AtomicType,
+		    typedef typename Accessible<R::AddrSpace,
+						typename R::AtomicType,
 						R::RegEntries,
 						R::RegOffset>::allowed type;
 
@@ -266,7 +274,8 @@ namespace vwpp {
 		void set_element(typename R::Type const& v,
 				 size_t const idx) const
 		{
-		    typedef typename Accessible<typename R::AtomicType,
+		    typedef typename Accessible<R::AddrSpace,
+						typename R::AtomicType,
 						R::RegEntries,
 						R::RegOffset>::allowed type;
 
@@ -280,7 +289,8 @@ namespace vwpp {
 		void set_field(typename R::Type const& mask,
 			       typename R::Type const& v) const
 		{
-		    typedef typename Accessible<typename R::AtomicType,
+		    typedef typename Accessible<R::AddrSpace,
+						typename R::AtomicType,
 						R::RegEntries,
 						R::RegOffset>::allowed type;
 
@@ -290,7 +300,7 @@ namespace vwpp {
 		template <typename T>
 		T unsafe_get(size_t const offset) const
 		{
-		    typedef typename Accessible<T, 1, 0>::allowed type;
+		    typedef typename Accessible<Unknown, T, 1, 0>::allowed type;
 
 		    optimizer_barrier();
 		    return *getAddr<T>(offset);
@@ -299,7 +309,7 @@ namespace vwpp {
 		template <typename T>
 		void unsafe_set(size_t const offset, T const& v) const
 		{
-		    typedef typename Accessible<T, 1, 0>::allowed type;
+		    typedef typename Accessible<Unknown, T, 1, 0>::allowed type;
 
 		    optimizer_barrier();
 		    *getAddr<T>(offset) = v;
