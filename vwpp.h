@@ -235,33 +235,6 @@ namespace vwpp {
 	    void operator()(Mutex::Lock<mtx>&, T const& o) { value = o; }
 	};
 
-	// This class uses the "Counting" Semaphore as its underlying
-	// implementation. Pending tasks are queued by priority.
-
-	class CountingSemaphore : public SemaphoreBase {
-	 public:
-	    explicit CountingSemaphore(int = 1);
-
-	    template <CountingSemaphore& sem>
-	    class Lock : private Uncopyable, private NoHeap {
-	     public:
-		explicit Lock(int tmo = -1) { sem.acquire(tmo); }
-		~Lock() NOTHROW { sem.release(); }
-	    };
-
-	    template <typename T, CountingSemaphore T::*PSem>
-	    class PMLock : private Uncopyable, private NoHeap {
-		CountingSemaphore& sem;
-
-	     public:
-		explicit PMLock(T* const obj, int const tmo = -1) :
-		    sem(obj->*PSem)
-		{ sem.acquire(tmo); }
-
-		~PMLock() NOTHROW { sem.release(); }
-	    };
-	} __attribute__((deprecated));
-
 	// IntLock objects will disable interrupts during their
 	// lifetime.  Due to VxWorks' semantics, if a task that
 	// created the IntLock gets blocked, interrupts will get
@@ -309,12 +282,6 @@ namespace vwpp {
 	template <typename T, Mutex T::*pmtx>
 	struct DetermineLock<Mutex::PMLock<T, pmtx> > {
 	    typedef Mutex::PMLock<T, pmtx> type;
-	};
-
-	template <>
-	template <CountingSemaphore& sem>
-	struct DetermineLock<CountingSemaphore::Lock<sem> > {
-	    typedef CountingSemaphore::Lock<sem> type;
 	};
 
 	template <>
