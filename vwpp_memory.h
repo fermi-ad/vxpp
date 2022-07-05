@@ -130,7 +130,9 @@ namespace vwpp {
 		typedef T Type;
 		typedef T AtomicType;
 
-		enum { AddrSpace = Space, RegOffset = Offset, RegEntries = 1 };
+		static AddressSpace const space = Space;
+
+		enum { RegOffset = Offset, RegEntries = 1 };
 
 		static Type read(uint8_t volatile* const base)
 		{
@@ -149,13 +151,15 @@ namespace vwpp {
 		}
 	    };
 
-	    template <AddressSpace Space, typename T, size_t N, size_t Offset, ReadAccess R,
-		      WriteAccess W>
+	    template <AddressSpace Space, typename T, size_t N, size_t Offset,
+		      ReadAccess R, WriteAccess W>
 	    struct Register<Space, T[N], Offset, R, W> {
 		typedef T Type;
 		typedef T AtomicType;
 
-		enum { AddrSpace = Space, RegOffset = Offset, RegEntries = N };
+		static AddressSpace const space = Space;
+
+		enum { RegOffset = Offset, RegEntries = N };
 
 		static Type read(uint8_t volatile* const base,
 				 size_t const idx)
@@ -237,7 +241,7 @@ namespace vwpp {
 		template <typename R>
 		typename R::Type get() const
 		{
-		    typedef typename Accessible<R::AddrSpace,
+		    typedef typename Accessible<R::space,
 						typename R::AtomicType,
 						R::RegEntries,
 						R::RegOffset>::allowed type;
@@ -248,7 +252,7 @@ namespace vwpp {
 		template <typename R>
 		typename R::Type get_element(size_t const idx) const
 		{
-		    typedef typename Accessible<R::AddrSpace,
+		    typedef typename Accessible<R::space,
 						typename R::AtomicType,
 						R::RegEntries,
 						R::RegOffset>::allowed type;
@@ -262,7 +266,7 @@ namespace vwpp {
 		template <typename R>
 		void set(typename R::Type const& v) const
 		{
-		    typedef typename Accessible<R::AddrSpace,
+		    typedef typename Accessible<R::space,
 						typename R::AtomicType,
 						R::RegEntries,
 						R::RegOffset>::allowed type;
@@ -274,7 +278,7 @@ namespace vwpp {
 		void set_element(typename R::Type const& v,
 				 size_t const idx) const
 		{
-		    typedef typename Accessible<R::AddrSpace,
+		    typedef typename Accessible<R::space,
 						typename R::AtomicType,
 						R::RegEntries,
 						R::RegOffset>::allowed type;
@@ -289,7 +293,7 @@ namespace vwpp {
 		void set_field(typename R::Type const& mask,
 			       typename R::Type const& v) const
 		{
-		    typedef typename Accessible<R::AddrSpace,
+		    typedef typename Accessible<R::space,
 						typename R::AtomicType,
 						R::RegEntries,
 						R::RegOffset>::allowed type;
