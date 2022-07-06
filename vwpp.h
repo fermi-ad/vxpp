@@ -145,8 +145,10 @@ namespace vwpp {
 
 	class Mutex : public SemaphoreBase {
 	    template <Mutex& mtx> friend class Lock;
+	    template <Mutex& mtx> friend class LockWithInt;
 	    template <Mutex& mtx> friend class Unlock;
 	    template <typename T, Mutex T::*PMtx> friend class PMLock;
+	    template <typename T, Mutex T::*PMtx> friend class PMLockWithInt;
 	    template <typename T, Mutex T::*PMtx> friend class PMUnlock;
 
 	 public:
@@ -192,7 +194,7 @@ namespace vwpp {
 	    // Mutex::Unlock<> is used to release ownership of a Mutex
 	    // during the object's lifetime. The single parameter of
 	    // the template is the mutex with which this lock is
-	    // associated.  Since you can't release an un-owned mutex,
+	    // associated. Since you can't release an un-owned mutex,
 	    // the constructor requires you to prove you have a lock
 	    // on the mutex, proving at compile-time that you already
 	    // own it.
@@ -206,7 +208,7 @@ namespace vwpp {
 
 	    // Mutex::PMLock<> is used to hold ownership of a Mutex
 	    // residing in an object during the lock object's
-	    // lifetime.  The first template parameter is the class
+	    // lifetime. The first template parameter is the class
 	    // holding the mutex and the second selects the mutex
 	    // field in the class.
 
@@ -251,7 +253,7 @@ namespace vwpp {
 
 	    // Mutex::PMUnlock<> is used to release ownership of a
 	    // Mutex residing in an object during the unlock object's
-	    // lifetime.  The first template parameter is the class
+	    // lifetime. The first template parameter is the class
 	    // holding the mutex and the second parameter selects the
 	    // mutex field in the class. Since you can't release an
 	    // un-owned mutex, the constructor requires you to prove
