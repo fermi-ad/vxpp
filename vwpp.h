@@ -182,10 +182,10 @@ namespace vwpp {
 		    intUnlock(prevVal);
 		}
 
-		operator Lock<mtx> const& ()
+		operator Lock<mtx> const& () const
 		{ return reinterpret_cast<Lock<mtx> const&>(0); }
 
-		operator IntLock const& ()
+		operator IntLock const& () const
 		{ return reinterpret_cast<IntLock const&>(0); }
 	    };
 
@@ -242,10 +242,10 @@ namespace vwpp {
 		    intUnlock(prevVal);
 		}
 
-		operator PMLock<T, pmtx> const& ()
+		operator PMLock<T, pmtx> const& () const
 		{ return reinterpret_cast<PMLock<T, pmtx> const&>(0); }
 
-		operator IntLock const& ()
+		operator IntLock const& () const
 		{ return reinterpret_cast<IntLock const&>(0); }
 	    };
 
