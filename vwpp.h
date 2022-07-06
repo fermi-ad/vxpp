@@ -183,10 +183,10 @@ namespace vwpp {
 		}
 
 		operator Lock<mtx> const& () const
-		{ return reinterpret_cast<Lock<mtx> const&>(0); }
+		{ return *reinterpret_cast<Lock<mtx> const*>(0); }
 
 		operator IntLock const& () const
-		{ return reinterpret_cast<IntLock const&>(0); }
+		{ return *reinterpret_cast<IntLock const*>(0); }
 	    };
 
 	    // Mutex::Unlock<> is used to release ownership of a Mutex
@@ -243,10 +243,10 @@ namespace vwpp {
 		}
 
 		operator PMLock<T, pmtx> const& () const
-		{ return reinterpret_cast<PMLock<T, pmtx> const&>(0); }
+		{ return *reinterpret_cast<PMLock<T, pmtx> const*>(0); }
 
 		operator IntLock const& () const
-		{ return reinterpret_cast<IntLock const&>(0); }
+		{ return *reinterpret_cast<IntLock const*>(0); }
 	    };
 
 	    // Mutex::PMUnlock<> is used to release ownership of a
