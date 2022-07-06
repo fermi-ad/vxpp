@@ -347,8 +347,8 @@ namespace vwpp {
 
 	template <>
 	template <typename T, Mutex T::*pmtx>
-	struct DetermineLock<Mutex::PMLock<T, pmtx> > {
-	    typedef Mutex::PMLock<T, pmtx> type;
+	struct DetermineLock<Mutex::PMLockWithInt<T, pmtx> > {
+	    typedef Mutex::PMLockWithInt<T, pmtx> type;
 	};
 
 	template <>
