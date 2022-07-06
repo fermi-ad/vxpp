@@ -116,6 +116,8 @@ namespace vwpp {
 		std::runtime_error(msg ? msg : "timeout obtaining resource") {}
 	};
 
+	class IntLock;
+
 	// Base class for semaphore-like resources.
 
 	class SemaphoreBase : private Uncopyable, private NoHeap {
@@ -161,6 +163,32 @@ namespace vwpp {
 		~Lock() NOTHROW { mtx.release(); }
 	    };
 
+	    // Mutex::LockWithInt<> is used to hold ownership of a
+	    // Mutex during the object's lifetime along with disabling
+	    // interrupts. The single parameter of the template is the
+	    // mutex with which this lock is associated.
+
+	    template <Mutex& mtx>
+	    class LockWithInt : private Uncopyable, private NoHeap {
+		int const prevVal;
+
+	     public:
+		explicit LockWithInt(int tmo = -1) : prevVal(intLock())
+		{ mtx.acquire(tmo); }
+
+		~LockWithInt() NOTHROW
+		{
+		    mtx.release();
+		    intUnlock(prevVal);
+		}
+
+		operator Lock<mtx> const& ()
+		{ return reinterpret_cast<Lock<mtx> const&>(0); }
+
+		operator IntLock const& ()
+		{ return reinterpret_cast<IntLock const&>(0); }
+	    };
+
 	    // Mutex::Unlock<> is used to release ownership of a Mutex
 	    // during the object's lifetime. The single parameter of
 	    // the template is the mutex with which this lock is
@@ -192,6 +220,33 @@ namespace vwpp {
 		{ mtx.acquire(tmo); }
 
 		~PMLock() NOTHROW { mtx.release(); }
+	    };
+
+	    // Mutex::PMLockWithInt<> is used to hold ownership of a
+	    // Mutex during the object's lifetime along with disabling
+	    // interrupts.
+
+	    template <typename T, Mutex T::*pmtx>
+	    class PMLockWithInt : private Uncopyable, private NoHeap {
+		Mutex& mtx;
+		int const prevVal;
+
+	     public:
+		explicit PMLockWithInt(T* const obj, int tmo = -1) :
+		    mtx(obj->*pmtx), prevVal(intLock())
+		{ mtx.acquire(tmo); }
+
+		~PMLockWithInt() NOTHROW
+		{
+		    mtx.release();
+		    intUnlock(prevVal);
+		}
+
+		operator PMLock<T, pmtx> const& ()
+		{ return reinterpret_cast<PMLock<T, pmtx> const&>(0); }
+
+		operator IntLock const& ()
+		{ return reinterpret_cast<IntLock const&>(0); }
 	    };
 
 	    // Mutex::PMUnlock<> is used to release ownership of a
