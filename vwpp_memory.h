@@ -35,7 +35,7 @@ namespace vwpp {
 		    memory_sync();
 
 		    T const val =
-			*reinterpret_cast<T volatile*>(base + Offset) + idx;
+			*(reinterpret_cast<T volatile*>(base + Offset) + idx);
 
 		    optimizer_barrier();
 		    return val;
@@ -50,7 +50,7 @@ namespace vwpp {
 		    instruction_sync();
 
 		    T const val =
-			*reinterpret_cast<T volatile*>(base + Offset) + idx;
+			*(reinterpret_cast<T volatile*>(base + Offset) + idx);
 
 		    optimizer_barrier();
 		    return val;
