@@ -177,7 +177,7 @@ namespace vwpp {
 				       size_t const idx, Type const& mask,
 				       Type const& v)
 		{
-		    RWAPI<T, Offset, R, W>::writeMemField(base, idx, mask, v);
+		    RWAPI<Type, Offset, R, W>::chgField(base, idx, mask, v);
 		}
 	    };
 
