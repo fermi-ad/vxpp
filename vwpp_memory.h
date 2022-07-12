@@ -136,18 +136,18 @@ namespace vwpp {
 
 		static Type read(uint8_t volatile* const base)
 		{
-		    return ReadAPI<T, Offset, R>::readMem(base, 0);
+		    return ReadAPI<Type, Offset, R>::readMem(base, 0);
 		}
 
 		static void write(uint8_t volatile* const base, Type const& v)
 		{
-		    WriteAPI<T, Offset, W>::writeMem(base, 0, v);
+		    WriteAPI<Type, Offset, W>::writeMem(base, 0, v);
 		}
 
 		static void writeField(uint8_t volatile* const base,
 				       Type const& mask, Type const& v)
 		{
-		    RWAPI<T, Offset, R, W>::chgField(base, 0, mask, v);
+		    RWAPI<Type, Offset, R, W>::chgField(base, 0, mask, v);
 		}
 	    };
 
@@ -164,13 +164,13 @@ namespace vwpp {
 		static Type read(uint8_t volatile* const base,
 				 size_t const idx)
 		{
-		    return ReadAPI<T, Offset, R>::readMem(base, idx);
+		    return ReadAPI<Type, Offset, R>::readMem(base, idx);
 		}
 
 		static void write(uint8_t volatile* const base,
 				  size_t const idx, Type const& v)
 		{
-		    WriteAPI<T, Offset, W>::writeMem(base, idx, v);
+		    WriteAPI<Type, Offset, W>::writeMem(base, idx, v);
 		}
 
 		static void writeField(uint8_t volatile* const base,
