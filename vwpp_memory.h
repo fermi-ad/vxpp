@@ -30,7 +30,7 @@ namespace vwpp {
 	    template <typename T, size_t Offset>
 	    struct ReadAPI<T, Offset, Read> {
 		static T readMem(uint8_t volatile* const base,
-				 size_t const idx)
+				 size_t const idx) NOTHROW_IMPL
 		{
 		    memory_sync();
 
@@ -45,7 +45,7 @@ namespace vwpp {
 	    template <typename T, size_t Offset>
 	    struct ReadAPI<T, Offset, DestructiveRead> {
 		static T readMem(uint8_t volatile* const base,
-				 size_t const idx)
+				 size_t const idx) NOTHROW_IMPL
 		{
 		    instruction_sync();
 
@@ -67,7 +67,7 @@ namespace vwpp {
 	    template <typename T, size_t Offset>
 	    struct WriteAPI<T, Offset, Write> {
 		static void writeMem(uint8_t volatile* const base,
-				     size_t const idx, T const& v)
+				     size_t const idx, T const& v) NOTHROW_IMPL
 		{
 		    memory_sync();
 		    *(reinterpret_cast<T volatile*>(base + Offset) + idx) = v;
@@ -78,7 +78,7 @@ namespace vwpp {
 	    template <typename T, size_t Offset>
 	    struct WriteAPI<T, Offset, ConfirmWrite> {
 		static void writeMem(uint8_t volatile* const base,
-				     size_t const idx, T const& v)
+				     size_t const idx, T const& v) NOTHROW_IMPL
 		{
 		    T volatile* const ptr =
 			reinterpret_cast<T volatile*>(base + Offset) + idx;
@@ -98,7 +98,7 @@ namespace vwpp {
 	    struct RWAPI<T, Offset, Read, Write> {
 		static void chgField(uint8_t volatile* const base,
 				     size_t const idx, T const& mask,
-				     T const& v)
+				     T const& v) NOTHROW_IMPL
 		{
 		    T volatile* const ptr =
 			reinterpret_cast<T volatile*>(base + Offset) + idx;
@@ -113,7 +113,7 @@ namespace vwpp {
 	    struct RWAPI<T, Offset, Read, ConfirmWrite> {
 		static void chgField(uint8_t volatile* const base,
 				     size_t const idx, T const& mask,
-				     T const& v)
+				     T const& v) NOTHROW_IMPL
 		{
 		    T volatile* const ptr =
 			reinterpret_cast<T volatile*>(base + Offset) + idx;
@@ -134,18 +134,18 @@ namespace vwpp {
 
 		enum { RegOffset = Offset, RegEntries = 1 };
 
-		static Type read(uint8_t volatile* const base)
+		static Type read(uint8_t volatile* const base) NOTHROW_IMPL
 		{
 		    return ReadAPI<Type, Offset, R>::readMem(base, 0);
 		}
 
-		static void write(uint8_t volatile* const base, Type const& v)
+		static void write(uint8_t volatile* const base, Type const& v) NOTHROW_IMPL
 		{
 		    WriteAPI<Type, Offset, W>::writeMem(base, 0, v);
 		}
 
 		static void writeField(uint8_t volatile* const base,
-				       Type const& mask, Type const& v)
+				       Type const& mask, Type const& v) NOTHROW_IMPL
 		{
 		    RWAPI<Type, Offset, R, W>::chgField(base, 0, mask, v);
 		}
@@ -162,20 +162,20 @@ namespace vwpp {
 		enum { RegOffset = Offset, RegEntries = N };
 
 		static Type read(uint8_t volatile* const base,
-				 size_t const idx)
+				 size_t const idx) NOTHROW_IMPL
 		{
 		    return ReadAPI<Type, Offset, R>::readMem(base, idx);
 		}
 
 		static void write(uint8_t volatile* const base,
-				  size_t const idx, Type const& v)
+				  size_t const idx, Type const& v) NOTHROW_IMPL
 		{
 		    WriteAPI<Type, Offset, W>::writeMem(base, idx, v);
 		}
 
 		static void writeField(uint8_t volatile* const base,
 				       size_t const idx, Type const& mask,
-				       Type const& v)
+				       Type const& v) NOTHROW_IMPL
 		{
 		    RWAPI<Type, Offset, R, W>::chgField(base, idx, mask, v);
 		}
@@ -220,7 +220,7 @@ namespace vwpp {
 		struct Accessible<Space, RegType, n, offset, true> {
 		    typedef Accessible allowed;
 
-		    static bool in_range(size_t const idx) {
+		    static bool in_range(size_t const idx) NOTHROW_IMPL {
 			return idx < n;
 		    }
 		};
@@ -239,7 +239,7 @@ namespace vwpp {
 		    baseAddr(calcBaseAddr(tag, offset)) {}
 
 		template <typename R>
-		typename R::Type get() const
+		typename R::Type get() const NOTHROW_IMPL
 		{
 		    typedef typename Accessible<R::space,
 						typename R::AtomicType,
@@ -264,7 +264,7 @@ namespace vwpp {
 		}
 
 		template <typename R>
-		void set(typename R::Type const& v) const
+		void set(typename R::Type const& v) const NOTHROW_IMPL
 		{
 		    typedef typename Accessible<R::space,
 						typename R::AtomicType,
@@ -291,7 +291,7 @@ namespace vwpp {
 
 		template <typename R>
 		void set_field(typename R::Type const& mask,
-			       typename R::Type const& v) const
+			       typename R::Type const& v) const NOTHROW_IMPL
 		{
 		    typedef typename Accessible<R::space,
 						typename R::AtomicType,
@@ -302,7 +302,7 @@ namespace vwpp {
 		}
 
 		template <typename T>
-		T unsafe_get(size_t const offset) const
+		T unsafe_get(size_t const offset) const NOTHROW_IMPL
 		{
 		    typedef typename Accessible<Unknown, T, 1, 0>::allowed type;
 
@@ -311,7 +311,7 @@ namespace vwpp {
 		}
 
 		template <typename T>
-		void unsafe_set(size_t const offset, T const& v) const
+		void unsafe_set(size_t const offset, T const& v) const NOTHROW_IMPL
 		{
 		    typedef typename Accessible<Unknown, T, 1, 0>::allowed type;
 
@@ -350,7 +350,7 @@ namespace vwpp {
 		{}
 
 		template <typename R>
-		typename R::Type get(Lock const&) const
+		typename R::Type get(Lock const&) const NOTHROW_IMPL
 		{ return Base::template get<R>(); }
 
 		template <typename R>
@@ -359,7 +359,7 @@ namespace vwpp {
 		{ return Base::template get_element<R>(idx); }
 
 		template <typename R>
-		void set(Lock const&, typename R::Type const& v) const
+		void set(Lock const&, typename R::Type const& v) const NOTHROW_IMPL
 		{ Base::template set<R>(v); }
 
 		template <typename R>
@@ -369,16 +369,16 @@ namespace vwpp {
 
 		template <typename R>
 		void set_field(Lock const&, typename R::Type const& mask,
-			       typename R::Type const& v) const
+			       typename R::Type const& v) const NOTHROW_IMPL
 		{ Base::template set_field<R>(mask, v); }
 
 		template <typename T>
-		T unsafe_get(Lock const&, size_t const offset) const
+		T unsafe_get(Lock const&, size_t const offset) const NOTHROW_IMPL
 		{ return Base::template unsafe_get<T>(offset); }
 
 		template <typename T>
 		void unsafe_set(Lock const&, size_t const offset,
-			     T const& v) const
+			     T const& v) const NOTHROW_IMPL
 		{ Base::template unsafe_set<T>(offset, v); }
 	    };
 
